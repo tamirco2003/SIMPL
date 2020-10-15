@@ -1,0 +1,46 @@
+TERMINALS:
+
+PLUS
+MINUS
+STAR
+SLASH
+LPAR
+RPAR
+SEMICOLON
+EQUALS
+NUMBER
+IDENTIFIER
+PRINT
+END
+
+---------------------------------------------
+GRAMMAR:
+
+script -> statement* END
+
+statement -> PRINT expression SEMICOLON | LET IDENTIFIER [EQUALS expression] SEMICOLON | expression SEMICOLON
+
+expression -> IDENTIFIER EQUALS expression | arithmatic
+
+arithmatic -> term | arithmatic PLUS term | arithmatic MINUS term
+
+term -> factor | term STAR factor | term SLASH factor | term PERCENT factor
+
+factor -> [MINUS] (IDENTIFIER | NUMBER | LPAR expression RPAR)
+
+---------------------------------------------
+GRAMMAR WITHOUT LEFT RECURSION:
+
+script -> statement* END
+
+statement -> PRINT expression SEMICOLON | LET IDENTIFIER [EQUALS expression] SEMICOLON | expression SEMICOLON
+
+expression -> IDENTIFIER EQUALS expression | arithmatic
+
+arithmatic -> term [rightExpression]
+rightExpression -> PLUS term [rightExpression] | MINUS term [rightExpression]
+
+term -> factor [rightTerm]
+rightTerm -> STAR factor [rightTerm] | SLASH factor [rightTerm] | PERCENT factor [rightTerm]
+
+factor -> [MINUS] (IDENTIFIER | NUMBER | LPAR arithmatic RPAR)

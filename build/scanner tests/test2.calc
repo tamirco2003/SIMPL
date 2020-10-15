@@ -1,0 +1,3 @@
+gaming = 20 + 4;
+lmao = gaming % 3;
+print lmao;
