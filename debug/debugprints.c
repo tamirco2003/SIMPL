@@ -2,7 +2,8 @@
 
 #include <stdio.h>
 
-char* TokenTypeString[] = {
+// String representations of token types.
+static char* TokenTypeString[] = {
     "PLUS",   "MINUS",   "STAR",   "SLASH",      "LPAR",  "RPAR", "SEMICOLON",
     "EQUALS", "PERCENT", "NUMBER", "IDENTIFIER", "PRINT", "LET",  "EOF"};
 

@@ -8,15 +8,17 @@ LPAR
 RPAR
 SEMICOLON
 EQUALS
+PERCENT
 NUMBER
 IDENTIFIER
 PRINT
-END
+LET
+EOF
 
 ---------------------------------------------
 GRAMMAR:
 
-script -> statement* END
+script -> statement* EOF
 
 statement -> PRINT expression SEMICOLON | LET IDENTIFIER [EQUALS expression] SEMICOLON | expression SEMICOLON
 
@@ -31,7 +33,7 @@ factor -> MINUS* (IDENTIFIER | NUMBER | LPAR expression RPAR)
 ---------------------------------------------
 GRAMMAR WITHOUT LEFT RECURSION:
 
-script -> statement* END
+script -> statement* EOF
 
 statement -> PRINT expression SEMICOLON | LET IDENTIFIER [EQUALS expression] SEMICOLON | expression SEMICOLON
 

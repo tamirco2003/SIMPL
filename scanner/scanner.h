@@ -1,4 +1,4 @@
-// Simple "naive" scanner.
+// Responsible for scanning/tokenization functionality, naive implementation.
 
 #ifndef SCANNER_H
 #define SCANNER_H
@@ -6,6 +6,9 @@
 #include <stdbool.h>
 
 #include "..\tokenlist.h"
+
+// Exits the program when scanner encounters an error.
+void scannerError();
 
 // Takes in char pointer and char, appends char to char pointer.
 void append(char* str, char c);
@@ -28,6 +31,6 @@ TokenType keywordType(char* keyword);
 
 // Main scanning function. Calls addToken to populate list with tokens, calls
 // isDigit, isAlpha, number, and keyword accordingly.
-int scan(List* list);
+List* scan();
 
 #endif

@@ -1,4 +1,4 @@
-// Recursive descent parser.
+// Responsible for parsing functionality, Recursive Descent algorithm.
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -6,7 +6,7 @@
 #include "..\tokenlist.h"
 
 // Exits the program when parser encounters an error.
-int parserError();
+void parserError();
 
 // Main parsing function. Takes in token list and calls parseStatement.
 Statement* parse(List* list);

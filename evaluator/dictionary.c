@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Initial (and currently constant) size of dictionary.
+#define DICTIONARY_SIZE 16
+
 int hashKey(char* key) {
   int hash = 0;
   for (int i = 0; i < key[i] != '\0'; i++) {

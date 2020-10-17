@@ -1,8 +1,6 @@
+// Responsible for dictionary/hashmap data structure.
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
-
-// Initial (and currently constant) size of dictionary.
-#define DICTIONARY_SIZE 16
 
 // Defines dictionary entry. Includes pointer to next entry with the same hash,
 // a char pointer for the key, and a double for the value.

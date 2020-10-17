@@ -5,6 +5,8 @@
 
 #include "filehandler.h"
 
+void scannerError() { exit(1); }
+
 #define KEYWORD_COUNT 2
 #define BUFFER_SIZE 500
 
@@ -85,7 +87,9 @@ TokenType keywordType(char* keyword) {
   return T_IDENTIFIER;
 }
 
-int scan(List* list) {
+List* scan() {
+  List* list = createList();
+
   int line = 1;
 
   char c = getNextChar();
@@ -127,18 +131,21 @@ int scan(List* list) {
       default:
         if (isDigit(c)) {
           char* num = number(c);
+
           if (num == NULL) {
             printf("\nERR: Multiple decimal points found on line '%d'\n", line);
-            return 1;
+            scannerError();
           }
+
           addToken(list, T_NUMBER, line, num);
         } else if (isAlpha(c)) {
           char* name = keyword(c);
           TokenType type = keywordType(name);
+
           addToken(list, type, line, name);
         } else {
           printf("\nERR: Unrecognized character '%c' on line '%d'\n", c, line);
-          return 1;
+          scannerError();
         }
         break;
     }
@@ -148,5 +155,5 @@ int scan(List* list) {
 
   addToken(list, T_EOF, line, "");
 
-  return 0;
+  return list;
 }

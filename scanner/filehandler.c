@@ -1,6 +1,6 @@
 #include "filehandler.h"
 
-FILE* sourceFile;
+static FILE* sourceFile;
 
 int openFile(const char* filename) {
   sourceFile = fopen(filename, "r");

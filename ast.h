@@ -1,9 +1,10 @@
-// Abstract syntax tree implementation.
+// Responsible for abstract syntax tree data structure.
 #ifndef AST_H
 #define AST_H
 
 #include "tokens.h"
 
+// Declarations and aliases for abstract syntax tree structs.
 typedef struct _statement Statement;
 typedef struct _declaration Declaration;
 typedef struct _printStatement PrintStatement;
@@ -64,7 +65,8 @@ struct _expression {
   } content;
 };
 
-// Defines binary expression. Includes type, left side expression, and right side expression.
+// Defines binary expression. Includes type, left side expression, and right
+// side expression.
 struct _binaryExpression {
   enum BinExpType {
     B_ADD,
@@ -74,7 +76,6 @@ struct _binaryExpression {
     B_MOD,
   } type;
   Expression* left;
-  // Token* op;
   Expression* right;
 };
 
@@ -83,7 +84,6 @@ struct _unaryExpression {
   enum UnxpType {
     U_MINUS,
   } type;
-  // Token* op;
   Expression* right;
 };
 

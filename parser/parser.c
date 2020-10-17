@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int parserError() { exit(1); }
+void parserError() { exit(1); }
 
 Statement* parse(List* list) {
   Statement* head = NULL;
@@ -52,7 +52,6 @@ Statement* parseStatement(List* list) {
 
   Token* semicolon = dequeue(list);
   if (semicolon->type != T_SEMICOLON) {
-    printf("\n\n%d\n\n", semicolon->type);
     printf("\nERR: Expected ';' at/before '%s' on line %d.", semicolon->lexeme,
            semicolon->line);
     parserError();
@@ -99,7 +98,6 @@ Expression* parseExpression(List* list) {
   Token* first = dequeue(list);
   Token* next = peek(list);
   if (next->type == T_EQUALS) {
-    // SPLIT INTO "ASSIGNMENT" FUNCTION?
     dequeue(list);
     result->type = E_ASSIGNMENT;
 
@@ -211,26 +209,6 @@ Expression* factor(List* list) {
     token = dequeue(list);
   }
 
-  // while (token->type == T_MINUS) {
-  //   Expression* unaryExp = (Expression*)malloc(sizeof(Expression));
-  //   // result = (Expression*)malloc(sizeof(Expression));
-  //   unaryExp->type = E_UNARY;
-  //   UnaryExpression* unary =
-  //   (UnaryExpression*)malloc(sizeof(UnaryExpression)); unary->type = U_MINUS;
-  //   unaryExp->content.unaryExpression = unary;
-
-  //   if (result == NULL) {
-  //     result = unaryExp;
-  //   } else {
-  //     result->content.unaryExpression->right = unaryExp;
-  //     result = unaryExp;
-  //     // unary->right = result;
-  //     // result = unaryExp;
-  //   }
-
-  //   token = dequeue(list);
-  // }
-
   Expression* nakedRes = (Expression*)malloc(sizeof(Expression));
 
   switch (token->type) {
@@ -249,7 +227,6 @@ Expression* factor(List* list) {
       nakedRes->content.literalExpression = literal;
       break;
     case T_LPAR:
-      // SPLIT INTO GROUPING FUNCTION?
       nakedRes->type = E_GROUPING;
       GroupingExpression* grouping =
           (GroupingExpression*)malloc(sizeof(GroupingExpression));
@@ -277,7 +254,3 @@ Expression* factor(List* list) {
   tail->content.unaryExpression->right = nakedRes;
   return head;
 }
-
-// CHECK NULL FOR EVERYTHING SO I CAN DO ERRORS?
-// Maybe create an error function that prints and exits.
-// But I don't wanna exit ech.

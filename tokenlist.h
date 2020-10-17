@@ -1,3 +1,4 @@
+// Responsible for Token list/queue data structure.
 #ifndef TOKENLIST_H
 #define TOKENLIST_H
 

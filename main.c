@@ -17,11 +17,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  List* tokenList = createList();
-
-  if (scan(tokenList) != 0) {
-    return;
-  }
+  List* tokenList = scan();
 
   printf("Scanner Pretty Print:\n");
 

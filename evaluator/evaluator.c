@@ -6,7 +6,7 @@
 
 void runtimeError() { exit(1); }
 
-DictEntry** dictionary;
+static DictEntry** dictionary;
 
 void evaluate(Statement* statement) {
   dictionary = createDict();
@@ -21,13 +21,18 @@ void evaluateStatement(Statement* statement) {
   switch (statement->type) {
     case S_DECLARATION:
       Declaration* declaration = statement->content.declaration;
+
+      if (getFromDict(dictionary, declaration->identifier->lexeme) != NULL) {
+        printf("ERR: Redefined variable '%s' on line %d.",
+               declaration->identifier->lexeme, declaration->identifier->line);
+        runtimeError();
+      }
+
       double value = 0;
       if (declaration->expression != NULL) {
         value = evaluateExpression(declaration->expression);
       }
       setDict(dictionary, declaration->identifier->lexeme, value);
-
-      // CAN REDEFINE VARS! SUPER PROBLEMATIC!
       break;
     case S_EXPRESSION:
       evaluateExpression(statement->content.expression);
