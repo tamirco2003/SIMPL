@@ -1,0 +1,13 @@
+let x = 200;
+let y = 300;
+
+x = x * x;
+y = x * y;
+
+print x;
+print y;
+print x + y;
+print x - y;
+print x * y;
+print x / y;
+print x % y;

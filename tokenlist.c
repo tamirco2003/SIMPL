@@ -39,10 +39,6 @@ void addToken(List* list, TokenType type, int line, char* lexeme) {
   enqueue(list, token);
 }
 
-void addSToken(List* list, TokenType type, int line) {
-  addToken(list, type, line, NULL);
-}
-
 Token* dequeue(List* list) {
   if (list->head == NULL) {
     return NULL;

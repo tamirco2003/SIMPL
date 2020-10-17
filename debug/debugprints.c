@@ -52,7 +52,7 @@ void printExpression(Expression* expr, int depth) {
       printBinaryExpression(expr->content.binaryExpression, depth + 1);
       break;
     case E_UNARY:
-      printf("%*cUnary!\n", (depth + 1) * 4, ' ');
+      printUnaryExpression(expr->content.unaryExpression, depth + 1);
       break;
     case E_GROUPING:
       printf("%*cGrouping {\n", (depth + 1) * 4, ' ');
@@ -77,8 +77,9 @@ void printExpression(Expression* expr, int depth) {
 
 void printAssignment(AssignmentExpression* assignment, int depth) {
   printf("%*cAssignment {\n", depth * 4, ' ');
-  printf("%*cIdentifier: %s\n", (depth + 1) * 4, ' ', assignment->left->lexeme);
-  printExpression(assignment->right, depth + 1);
+  printf("%*cIdentifier: %s\n", (depth + 1) * 4, ' ',
+         assignment->identifier->lexeme);
+  printExpression(assignment->expression, depth + 1);
   printf("%*c}\n", depth * 4, ' ');
 }
 
@@ -112,4 +113,16 @@ void printBinaryExpression(BinaryExpression* binaryExpression, int depth) {
   printf("%*c}\n", (depth + 1) * 4, ' ');
 
   printf("%*c}\n", depth * 4, ' ');
+}
+
+void printUnaryExpression(UnaryExpression* unaryExpression, int depth) {
+  printf("%*cUnary : ", depth * 4, ' ');
+
+  switch (unaryExpression->type) {
+    case U_MINUS:
+      printf("Minus {\n");
+      break;
+  }
+
+  printExpression(unaryExpression->right, depth + 1);
 }

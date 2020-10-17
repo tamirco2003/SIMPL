@@ -7,23 +7,27 @@
 
 #include "..\tokenlist.h"
 
-// Appends char to string.
+// Takes in char pointer and char, appends char to char pointer.
 void append(char* str, char c);
 
-// Checks if char is digit.
+// Takes in char, returns true if char is a digit, false otherwise.
 bool isDigit(char c);
-// Checks if char is letter or underscore.
+// Takes in char, returns true if char is a letter or underscore, false
+// otherwise.
 bool isAlpha(char c);
 
-// Finds number in source.
+// Takes in first char, keeps going until number is found or error occurs.
 char* number(char c);
-// Finds keyword in source.
+// Takes in first char, keeps going until keyword is found. Calls keywordType
+// for reserved keywords.
 char* keyword(char c);
 
-// Returns type of keyword.
+// Takes in char pointer and returns type of keyword, one of reserved or
+// identifier.
 TokenType keywordType(char* keyword);
 
-// Main scanning function.
+// Main scanning function. Calls addToken to populate list with tokens, calls
+// isDigit, isAlpha, number, and keyword accordingly.
 int scan(List* list);
 
 #endif

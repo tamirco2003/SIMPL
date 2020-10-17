@@ -22,7 +22,7 @@ typedef enum _tokenType {
   T_EOF,
 } TokenType;
 
-// Defines token.
+// Defines token. Includes token type, line number, and char pointer to lexeme.
 typedef struct _token {
   TokenType type;
   int line;

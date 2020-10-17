@@ -11,5 +11,6 @@ void printDeclaration(Declaration* decl, int depth);
 void printExpression(Expression* expr, int depth);
 void printAssignment(AssignmentExpression* assignment, int depth);
 void printBinaryExpression(BinaryExpression* binaryExpression, int depth);
+void printUnaryExpression(UnaryExpression* unaryExpression, int depth);
 
 #endif

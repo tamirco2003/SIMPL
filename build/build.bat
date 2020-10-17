@@ -1,1 +1,1 @@
-cl /Fe"simpl" ..\main.c ..\debug\debugprints.c ..\parser\parser.c ..\scanner\scanner.c ..\tokenlist.c ..\scanner\filehandler.c
+cl /Fe"simpl" ..\main.c ..\evaluator\dictionary.c ..\evaluator\evaluator.c ..\debug\debugprints.c ..\parser\parser.c ..\scanner\scanner.c ..\tokenlist.c ..\scanner\filehandler.c

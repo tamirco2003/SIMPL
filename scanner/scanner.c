@@ -92,31 +92,31 @@ int scan(List* list) {
   while (c != EOF) {
     switch (c) {
       case '+':
-        addSToken(list, T_PLUS, line);
+        addToken(list, T_PLUS, line, "+");
         break;
       case '-':
-        addSToken(list, T_MINUS, line);
+        addToken(list, T_MINUS, line, "-");
         break;
       case '*':
-        addSToken(list, T_STAR, line);
+        addToken(list, T_STAR, line, "*");
         break;
       case '/':
-        addSToken(list, T_SLASH, line);
+        addToken(list, T_SLASH, line, "/");
         break;
       case '(':
-        addSToken(list, T_LPAR, line);
+        addToken(list, T_LPAR, line, "(");
         break;
       case ')':
-        addSToken(list, T_RPAR, line);
+        addToken(list, T_RPAR, line, ")");
         break;
       case ';':
-        addSToken(list, T_SEMICOLON, line);
+        addToken(list, T_SEMICOLON, line, ";");
         break;
       case '=':
-        addSToken(list, T_EQUALS, line);
+        addToken(list, T_EQUALS, line, "=");
         break;
       case '%':
-        addSToken(list, T_PERCENT, line);
+        addToken(list, T_PERCENT, line, "%");
         break;
       case '\n':
         line++;
@@ -128,7 +128,7 @@ int scan(List* list) {
         if (isDigit(c)) {
           char* num = number(c);
           if (num == NULL) {
-            printf("ERR: Multiple decimal points found on line '%d'\n", line);
+            printf("\nERR: Multiple decimal points found on line '%d'\n", line);
             return 1;
           }
           addToken(list, T_NUMBER, line, num);
@@ -137,7 +137,7 @@ int scan(List* list) {
           TokenType type = keywordType(name);
           addToken(list, type, line, name);
         } else {
-          printf("ERR: Unrecognized character '%c' on line '%d'\n", c, line);
+          printf("\nERR: Unrecognized character '%c' on line '%d'\n", c, line);
           return 1;
         }
         break;
@@ -146,7 +146,7 @@ int scan(List* list) {
     c = getNextChar();
   }
 
-  addSToken(list, T_EOF, line);
+  addToken(list, T_EOF, line, "");
 
   return 0;
 }

@@ -5,30 +5,26 @@
 
 int parserError() { exit(1); }
 
-AstTop* createAst() {
-  AstTop* result = malloc(sizeof(AstTop));
-  result->statement = NULL;
-  return result;
-}
+Statement* parse(List* list) {
+  Statement* head = NULL;
+  Statement* tail = NULL;
 
-int parse(AstTop* top, List* list) {
   Token* token = peek(list);
-  Statement* tail;
-
   while (token->type != T_EOF) {
     Statement* statement = parseStatement(list);
 
-    if (top->statement == NULL) {
-      top->statement = statement;
+    if (tail == NULL) {
+      head = statement;
     } else {
       tail->next = statement;
     }
+
     tail = statement;
 
     token = peek(list);
   }
 
-  return 0;
+  return head;
 }
 
 Statement* parseStatement(List* list) {
@@ -57,7 +53,7 @@ Statement* parseStatement(List* list) {
   Token* semicolon = dequeue(list);
   if (semicolon->type != T_SEMICOLON) {
     printf("\n\n%d\n\n", semicolon->type);
-    printf("ERR: Expected ';' at/before '%s' on line %d.", semicolon->lexeme,
+    printf("\nERR: Expected ';' at/before '%s' on line %d.", semicolon->lexeme,
            semicolon->line);
     parserError();
   }
@@ -74,11 +70,12 @@ PrintStatement* parsePrint(List* list) {
 
 Declaration* parseDeclaration(List* list) {
   Declaration* result = (Declaration*)malloc(sizeof(Declaration));
+  result->expression = NULL;
 
   Token* identifier = dequeue(list);
   if (identifier->type != T_IDENTIFIER) {
-    printf("ERR: Expected identifier at '%s' on line %d.\n", identifier->lexeme,
-           identifier->line);
+    printf("\nERR: Expected identifier at '%s' on line %d.\n",
+           identifier->lexeme, identifier->line);
     parserError();
   }
   result->identifier = identifier;
@@ -88,7 +85,7 @@ Declaration* parseDeclaration(List* list) {
     dequeue(list);
     result->expression = parseExpression(list);
   } else if (next->type != T_SEMICOLON) {
-    printf("ERR: Unexpected token at '%s' on line %d.\n", identifier->lexeme,
+    printf("\nERR: Unexpected token at '%s' on line %d.\n", identifier->lexeme,
            identifier->line);
     parserError();
   }
@@ -109,8 +106,8 @@ Expression* parseExpression(List* list) {
     AssignmentExpression* assign =
         (AssignmentExpression*)malloc(sizeof(AssignmentExpression));
 
-    assign->left = first;
-    assign->right = parseExpression(list);
+    assign->identifier = first;
+    assign->expression = parseExpression(list);
     result->content.assignmentExpression = assign;
 
     return result;
@@ -191,48 +188,94 @@ Expression* term(List* list) {
 }
 
 Expression* factor(List* list) {
-  Expression* result = (Expression*)malloc(sizeof(Expression));
+  Expression* head = NULL;
+  Expression* tail = NULL;
 
   Token* token = dequeue(list);
 
+  while (token->type == T_MINUS) {
+    Expression* unaryExp = (Expression*)malloc(sizeof(Expression));
+    unaryExp->type = E_UNARY;
+    UnaryExpression* unary = (UnaryExpression*)malloc(sizeof(UnaryExpression));
+    unary->type = U_MINUS;
+    unaryExp->content.unaryExpression = unary;
+
+    if (head == NULL) {
+      head = unaryExp;
+      tail = unaryExp;
+    } else {
+      tail->content.unaryExpression->right = unaryExp;
+      tail = unaryExp;
+    }
+
+    token = dequeue(list);
+  }
+
+  // while (token->type == T_MINUS) {
+  //   Expression* unaryExp = (Expression*)malloc(sizeof(Expression));
+  //   // result = (Expression*)malloc(sizeof(Expression));
+  //   unaryExp->type = E_UNARY;
+  //   UnaryExpression* unary =
+  //   (UnaryExpression*)malloc(sizeof(UnaryExpression)); unary->type = U_MINUS;
+  //   unaryExp->content.unaryExpression = unary;
+
+  //   if (result == NULL) {
+  //     result = unaryExp;
+  //   } else {
+  //     result->content.unaryExpression->right = unaryExp;
+  //     result = unaryExp;
+  //     // unary->right = result;
+  //     // result = unaryExp;
+  //   }
+
+  //   token = dequeue(list);
+  // }
+
+  Expression* nakedRes = (Expression*)malloc(sizeof(Expression));
+
   switch (token->type) {
     case T_IDENTIFIER:
-      result->type = E_VARIABLE;
+      nakedRes->type = E_VARIABLE;
       VariableExpression* variable =
           (VariableExpression*)malloc(sizeof(VariableExpression));
       variable->value = token;
-      result->content.variableExpression = variable;
+      nakedRes->content.variableExpression = variable;
       break;
     case T_NUMBER:
-      result->type = E_LITERAL;
+      nakedRes->type = E_LITERAL;
       LiteralExpression* literal =
           (LiteralExpression*)malloc(sizeof(LiteralExpression));
       literal->value.number = atof(token->lexeme);
-      result->content.literalExpression = literal;
+      nakedRes->content.literalExpression = literal;
       break;
     case T_LPAR:
       // SPLIT INTO GROUPING FUNCTION?
-      result->type = E_GROUPING;
+      nakedRes->type = E_GROUPING;
       GroupingExpression* grouping =
           (GroupingExpression*)malloc(sizeof(GroupingExpression));
       grouping->expression = arithmatic(list);
-      result->content.groupingExpression = grouping;
+      nakedRes->content.groupingExpression = grouping;
 
       Token* rightPar = dequeue(list);
       if (rightPar->type != T_RPAR) {
-        printf("ERR: Expected '(' at '%s' on line %d.\n", rightPar->lexeme,
+        printf("\nERR: Expected '(' at '%s' on line %d.\n", rightPar->lexeme,
                rightPar->line);
         parserError();
       }
       break;
     default:
-      printf("ERR: Unexpected token at '%s' on line %d.\n", token->lexeme,
+      printf("\nERR: Unexpected token at '%s' on line %d.\n", token->lexeme,
              token->line);
       parserError();
       break;
   }
 
-  return result;
+  if (tail == NULL) {
+    return nakedRes;
+  }
+
+  tail->content.unaryExpression->right = nakedRes;
+  return head;
 }
 
 // CHECK NULL FOR EVERYTHING SO I CAN DO ERRORS?

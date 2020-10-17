@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "debug\debugprints.h"
+#include "evaluator\evaluator.h"
 #include "parser\parser.h"
 #include "scanner\scanner.h"
 
@@ -30,16 +31,15 @@ int main(int argc, char* argv[]) {
     n = n->next;
   }
 
+  Statement* top = parse(tokenList);
+
   printf("\n\nParser Pretty Print:\n");
-
-  AstTop* treetop = createAst();
-
-  parse(treetop, tokenList);
-
-  Statement* stmt = treetop->statement;
-
+  Statement* stmt = top;
   while (stmt != NULL) {
     printStatement(stmt);
     stmt = stmt->next;
   }
+
+  printf("\n\nEvaluation:\n");
+  evaluate(top);
 }

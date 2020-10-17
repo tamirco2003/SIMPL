@@ -4,7 +4,6 @@
 
 #include "tokens.h"
 
-typedef struct _top AstTop;
 typedef struct _statement Statement;
 typedef struct _declaration Declaration;
 typedef struct _printStatement PrintStatement;
@@ -16,10 +15,7 @@ typedef struct _literalExpression LiteralExpression;
 typedef struct _assignmentExpression AssignmentExpression;
 typedef struct _variableExpression VariableExpression;
 
-struct _top {
-  Statement* statement;
-};
-
+// Defines statement. Includes type, type-relevant content, and next statement.
 struct _statement {
   enum StatementType {
     S_EXPRESSION,
@@ -36,15 +32,18 @@ struct _statement {
   Statement* next;
 };
 
+// Defines declaration. Includes identifier and expression.
 struct _declaration {
   Token* identifier;
   Expression* expression;
 };
 
+// Defines print. Includes expression.
 struct _printStatement {
   Expression* expression;
 };
 
+// Defines expression. Includes type and type-relevant content.
 struct _expression {
   enum ExpressionType {
     E_BINARY,
@@ -65,6 +64,7 @@ struct _expression {
   } content;
 };
 
+// Defines binary expression. Includes type, left side expression, and right side expression.
 struct _binaryExpression {
   enum BinExpType {
     B_ADD,
@@ -78,6 +78,7 @@ struct _binaryExpression {
   Expression* right;
 };
 
+// Defines unary expression. Includes type and left side expression.
 struct _unaryExpression {
   enum UnxpType {
     U_MINUS,
@@ -86,21 +87,25 @@ struct _unaryExpression {
   Expression* right;
 };
 
+// Defines grouping expression. Includes expression.
 struct _groupingExpression {
   Expression* expression;
 };
 
+// Defines literals. Includes value.
 struct _literalExpression {
   union LiteralValue {
     double number;
   } value;
 };
 
+// Defines assignment. Includes identifier and expression.
 struct _assignmentExpression {
-  Token* left;
-  Expression* right;
+  Token* identifier;
+  Expression* expression;
 };
 
+// Defines variable. Includes identifier.
 struct _variableExpression {
   Token* value;
 };
