@@ -1,6 +1,5 @@
-- Add evaluator.
 - Change dictionary/evaluator to be able to easily add more data types.
-- Free tokens! (NO UAF!!1!)
+- Free the tokens.
 - Change scanner to peek and discard instead of popping.
 - Find better way to store reserved keywords.
 - Improve scanner error reporting.
