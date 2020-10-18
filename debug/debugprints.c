@@ -41,7 +41,11 @@ void printStatement(Statement* stmt) {
 void printDeclaration(Declaration* decl, int depth) {
   printf("%*cDeclaration {\n", depth * 4, ' ');
   printf("%*cIdentifier: %s\n", (depth + 1) * 4, ' ', decl->identifier->lexeme);
-  printExpression(decl->expression, depth + 1);
+
+  if (decl->expression != NULL) {
+    printExpression(decl->expression, depth + 1);
+  }
+  
   printf("%*c}\n", depth * 4, ' ');
 }
 
