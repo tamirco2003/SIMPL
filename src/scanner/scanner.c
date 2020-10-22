@@ -3,18 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "charlist.h"
 #include "filehandler.h"
 
-void scannerError() { exit(1); }
-
 #define KEYWORD_COUNT 2
-#define BUFFER_SIZE 500
+static char* keywords[KEYWORD_COUNT] = {"print", "let"};
+#define FIRST_KEYWORD T_PRINT
 
-void append(char* str, char c) {
-  int len = strlen(str);
-  str[len++] = c;
-  str[len] = '\0';
-}
+void scannerError() { exit(1); }
 
 bool isDigit(char c) { return c >= '0' && c <= '9'; }
 
@@ -22,65 +18,56 @@ bool isAlpha(char c) {
   return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
-char* number(char c) {
-  char* buffer = malloc(sizeof(char) * BUFFER_SIZE);
-  memset(buffer, '\0', sizeof(char) * BUFFER_SIZE);
-  append(buffer, c);
+char* number() {
+  char first = getNextChar();
+  int length = 1;
+
+  CharNode* head = createCharNode(first);
+  CharNode* tail = head;
 
   bool decimal = false;
-  char next = peekNextChar();
 
-  while (next == '.' || isDigit(next)) {
-    if (next == '.') {
-      if (!decimal) {
-        decimal = true;
-        append(buffer, next);
-      } else {
+  char c = peekNextChar();
+  while (isDigit(c) || c == '.') {
+    if (c == '.') {
+      if (decimal) {
         return NULL;
       }
-    } else {
-      append(buffer, next);
+
+      decimal = true;
     }
 
-    getNextChar();
-    next = peekNextChar();
+    tail->next = createCharNode(getNextChar());
+    tail = tail->next;
+    length++;
+    c = peekNextChar();
   }
 
-  char* result = malloc(sizeof(char) * strlen(buffer));
-  strcpy(result, buffer);
-
-  free(buffer);
-
-  return result;
+  return toString(head, length);
 }
 
-char* keyword(char c) {
-  char* buffer = malloc(sizeof(char) * BUFFER_SIZE);
-  memset(buffer, '\0', sizeof(char) * BUFFER_SIZE);
-  append(buffer, c);
+char* keyword() {
+  char first = getNextChar();
+  int length = 1;
 
-  char next = peekNextChar();
+  CharNode* head = createCharNode(first);
+  CharNode* tail = head;
 
-  while (isAlpha(next) || isDigit(next)) {
-    append(buffer, next);
-    getNextChar();
-    next = peekNextChar();
+  char c = peekNextChar();
+  while (isAlpha(c) || isDigit(c)) {
+    tail->next = createCharNode(getNextChar());
+    tail = tail->next;
+    length++;
+    c = peekNextChar();
   }
 
-  char* result = malloc(sizeof(char) * strlen(buffer));
-  strcpy(result, buffer);
-
-  free(buffer);
-
-  return result;
+  return toString(head, length);
 }
 
 TokenType keywordType(char* keyword) {
-  char* keywords[KEYWORD_COUNT] = {"print", "let"};
-
   for (int i = 0; i < KEYWORD_COUNT; i++) {
     if (strcmp(keywords[i], keyword) == 0) {
-      return (TokenType)(i + T_PRINT);
+      return (TokenType)(i + FIRST_KEYWORD);
     }
   }
 
@@ -91,35 +78,44 @@ List* scan() {
   List* list = createList();
 
   int line = 1;
+  char c = peekNextChar();
 
-  char c = getNextChar();
   while (c != EOF) {
     switch (c) {
       case '+':
+        getNextChar();
         addToken(list, T_PLUS, line, "+");
         break;
       case '-':
+        getNextChar();
         addToken(list, T_MINUS, line, "-");
         break;
       case '*':
+        getNextChar();
         addToken(list, T_STAR, line, "*");
         break;
       case '/':
+        getNextChar();
         addToken(list, T_SLASH, line, "/");
         break;
       case '(':
+        getNextChar();
         addToken(list, T_LPAR, line, "(");
         break;
       case ')':
+        getNextChar();
         addToken(list, T_RPAR, line, ")");
         break;
       case ';':
+        getNextChar();
         addToken(list, T_SEMICOLON, line, ";");
         break;
       case '=':
+        getNextChar();
         addToken(list, T_EQUALS, line, "=");
         break;
       case '%':
+        getNextChar();
         addToken(list, T_PERCENT, line, "%");
         break;
       case '\n':
@@ -127,10 +123,11 @@ List* scan() {
       case ' ':
       case '\t':
       case '\r':
+        getNextChar();
         break;
       default:
         if (isDigit(c)) {
-          char* num = number(c);
+          char* num = number();
 
           if (num == NULL) {
             printf("\nERR: Multiple decimal points found on line '%d'\n", line);
@@ -139,7 +136,7 @@ List* scan() {
 
           addToken(list, T_NUMBER, line, num);
         } else if (isAlpha(c)) {
-          char* name = keyword(c);
+          char* name = keyword();
           TokenType type = keywordType(name);
 
           addToken(list, type, line, name);
@@ -150,7 +147,7 @@ List* scan() {
         break;
     }
 
-    c = getNextChar();
+    c = peekNextChar();
   }
 
   addToken(list, T_EOF, line, "");

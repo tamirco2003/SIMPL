@@ -1,1 +1,1 @@
-cl /Fe"build\simpl" /Fo"build\obj\\" src\main.c src\evaluator\dictionary.c src\evaluator\evaluator.c src\debug\debugprints.c src\parser\parser.c src\scanner\scanner.c src\tokenlist.c src\scanner\filehandler.c
+cl /Fe"build\simpl" /Fo"build\obj\\" src\main.c src\evaluator\dictionary.c src\evaluator\evaluator.c src\debug\debugprints.c src\parser\parser.c src\scanner\scanner.c src\scanner\charlist.c src\tokenlist.c src\scanner\filehandler.c
