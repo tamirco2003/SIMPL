@@ -1,3 +1,4 @@
+// Responsible for lexing/scanning/tokenifying, naive switch case algorithm.
 #ifndef SCANNER_H
 #define SCANNER_H
 
@@ -24,6 +25,9 @@ char* keyword();
 // Takes in char pointer and returns type of keyword, reserved or
 // identifier.
 TokenType keywordType(char* keyword);
+
+// Skips until end of line, for use in comments.
+void comment();
 
 // Main scanning function. Calls addToken to populate list with tokens, calls
 // isDigit, isAlpha, number, keyword, and keywordType accordingly.

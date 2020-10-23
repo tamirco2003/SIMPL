@@ -2,12 +2,14 @@
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
 
+#include "..\ast.h"
+
 // Defines dictionary entry. Includes pointer to next entry with the same hash,
-// a char pointer for the key, and a double for the value.
+// a char pointer for the key, and a LiteralExpression pointer for the value.
 typedef struct _dictEntry {
   struct _dictEntry* next;
   char* key;
-  double value;
+  LiteralExpression* value;
 } DictEntry;
 
 // Simple string hashing function for dictionary keys. Takes in char pointer,
@@ -19,8 +21,8 @@ DictEntry** createDict();
 // Takes in dictionary and key, returns pointer to DictEntry, or NULL if no such
 // key is found.
 DictEntry* getFromDict(DictEntry** dict, char* key);
-// Takes in dictionary, char pointer key, and double value, creates new
+// Takes in dictionary, char pointer key, and LiteralExpression pointer value, creates new
 // DictEntry and inserts it into the dictionary accordingly.
-void setDict(DictEntry** dict, char* key, double value);
+void setDict(DictEntry** dict, char* key, LiteralExpression* value);
 
 #endif

@@ -94,6 +94,9 @@ struct _groupingExpression {
 
 // Defines literals. Includes value.
 struct _literalExpression {
+  enum LiteralType {
+    L_NUMBER,
+  } type;
   union LiteralValue {
     double number;
   } value;
@@ -107,7 +110,7 @@ struct _assignmentExpression {
 
 // Defines variable. Includes identifier.
 struct _variableExpression {
-  Token* value;
+  Token* identifier;
 };
 
 #endif

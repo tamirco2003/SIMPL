@@ -30,8 +30,9 @@ DictEntry* getFromDict(DictEntry** dict, char* key) {
   return entry;
 }
 
-void setDict(DictEntry** dict, char* key, double value) {
+void setDict(DictEntry** dict, char* key, LiteralExpression* value) {
   int hash = hashKey(key);
+
   DictEntry* existingEntry = getFromDict(dict, key);
   if (existingEntry != NULL) {
     existingEntry->value = value;

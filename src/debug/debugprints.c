@@ -73,7 +73,7 @@ void printExpression(Expression* expr, int depth) {
       break;
     case E_VARIABLE:
       printf("%*cLexeme: %s\n", (depth + 1) * 4, ' ',
-             expr->content.variableExpression->value->lexeme);
+             expr->content.variableExpression->identifier->lexeme);
       break;
   }
 

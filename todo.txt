@@ -1,9 +1,7 @@
-- Change dictionary/evaluator to be able to easily add more data types.
 - Free the tokens.
-- Change scanner to peek and discard instead of popping.
-- Find better way to store reserved keywords.
+- Free the tree.
+- Free the slaves. Just free everything (BUT CAREFUL OF UAF!!!).
 - Improve scanner error reporting.
-- Basically improve scanner in general.
 - Improve syntax error handling and add panic-mode recovery.
 - Add conditionals.
 

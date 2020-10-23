@@ -216,7 +216,7 @@ Expression* factor(List* list) {
       nakedRes->type = E_VARIABLE;
       VariableExpression* variable =
           (VariableExpression*)malloc(sizeof(VariableExpression));
-      variable->value = token;
+      variable->identifier = token;
       nakedRes->content.variableExpression = variable;
       break;
     case T_NUMBER:
