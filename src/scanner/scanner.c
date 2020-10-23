@@ -74,11 +74,6 @@ TokenType keywordType(char* keyword) {
   return T_IDENTIFIER;
 }
 
-void comment() { 
-  getNextChar();
-  while (getNextChar() != '\n') {}
-}
-
 List* scan() {
   List* list = createList();
 
@@ -102,7 +97,7 @@ List* scan() {
       case '/':
         getNextChar();
         if (peekNextChar() == '/')
-          comment();
+          while (getNextChar() != '\n');
         else
           addToken(list, T_SLASH, line, "/");
         break;
