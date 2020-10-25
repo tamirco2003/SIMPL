@@ -30,4 +30,7 @@ typedef struct _token {
   char* lexeme;
 } Token;
 
+// Frees token and it's insides (lexeme).
+void freeToken(Token* token);
+
 #endif

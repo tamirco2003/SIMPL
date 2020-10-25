@@ -24,6 +24,7 @@ Statement* parse(List* list) {
     token = peek(list);
   }
 
+  free(list);
   return head;
 }
 
@@ -36,11 +37,15 @@ Statement* parseStatement(List* list) {
   switch (token->type) {
     case T_PRINT:
       dequeue(list);
+      freeToken(token);
+
       result->type = S_PRINT;
       result->content.printStatement = parsePrint(list);
       break;
     case T_LET:
       dequeue(list);
+      freeToken(token);
+
       result->type = S_DECLARATION;
       result->content.declaration = parseDeclaration(list);
       break;
@@ -56,6 +61,7 @@ Statement* parseStatement(List* list) {
            semicolon->line);
     parserError();
   }
+  freeToken(semicolon);
 
   return result;
 }
@@ -82,11 +88,13 @@ Declaration* parseDeclaration(List* list) {
   Token* next = peek(list);
   if (next->type == T_EQUALS) {
     dequeue(list);
+    freeToken(next);
+
     result->expression = parseExpression(list);
-  } else if (next->type != T_SEMICOLON) {
-    printf("\nERR: Unexpected token at '%s' on line %d.\n", identifier->lexeme,
-           identifier->line);
-    parserError();
+  // }else if (next->type != T_SEMICOLON) {
+  //   printf("\nERR: Unexpected token at '%s' on line %d.\n", identifier->lexeme,
+  //          identifier->line);
+  //   parserError();
   }
 
   return result;
@@ -99,6 +107,8 @@ Expression* parseExpression(List* list) {
   Token* next = peek(list);
   if (next->type == T_EQUALS) {
     dequeue(list);
+    freeToken(next);
+
     result->type = E_ASSIGNMENT;
 
     AssignmentExpression* assign =
@@ -112,7 +122,6 @@ Expression* parseExpression(List* list) {
   }
 
   push(list, first);
-
   return arithmatic(list);
 }
 
@@ -122,6 +131,7 @@ Expression* arithmatic(List* list) {
 
   while (op->type == T_PLUS || op->type == T_MINUS) {
     dequeue(list);
+    freeToken(op);
 
     Expression* res = (Expression*)malloc(sizeof(Expression));
     res->type = E_BINARY;
@@ -155,6 +165,7 @@ Expression* term(List* list) {
 
   while (op->type == T_STAR || op->type == T_SLASH || op->type == T_PERCENT) {
     dequeue(list);
+    freeToken(op);
 
     Expression* res = (Expression*)malloc(sizeof(Expression));
     res->type = E_BINARY;
@@ -192,6 +203,8 @@ Expression* factor(List* list) {
   Token* token = dequeue(list);
 
   while (token->type == T_MINUS) {
+    freeToken(token);
+
     Expression* unaryExp = (Expression*)malloc(sizeof(Expression));
     unaryExp->type = E_UNARY;
     UnaryExpression* unary = (UnaryExpression*)malloc(sizeof(UnaryExpression));
@@ -225,8 +238,10 @@ Expression* factor(List* list) {
           (LiteralExpression*)malloc(sizeof(LiteralExpression));
       literal->value.number = atof(token->lexeme);
       nakedRes->content.literalExpression = literal;
+      freeToken(token);
       break;
     case T_LPAR:
+    freeToken(token);
       nakedRes->type = E_GROUPING;
       GroupingExpression* grouping =
           (GroupingExpression*)malloc(sizeof(GroupingExpression));
@@ -239,6 +254,7 @@ Expression* factor(List* list) {
                rightPar->line);
         parserError();
       }
+      freeToken(rightPar);
       break;
     default:
       printf("\nERR: Unexpected token at '%s' on line %d.\n", token->lexeme,
