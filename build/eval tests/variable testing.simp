@@ -2,6 +2,8 @@ let x;
 x = 10;
 let y = 300;
 
+//let z
+
 x = x * x;
 y = x * y;
 

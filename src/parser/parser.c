@@ -1,17 +1,40 @@
 #include "parser.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void parserError() { exit(1); }
+static bool error;
+static bool panic;
+
+// void parserError() { exit(1); }
+void parserError() {
+  error = true;
+  panic = true;
+}
+
+void synchronize(List* list) {
+  while (dequeue(list)->type != T_SEMICOLON && peek(list)->type != T_EOF)
+    ;
+  panic = false;
+}
 
 Statement* parse(List* list) {
+  error = false;
+  panic = false;
+
   Statement* head = NULL;
   Statement* tail = NULL;
 
   Token* token = peek(list);
   while (token->type != T_EOF) {
     Statement* statement = parseStatement(list);
+
+    if (panic) {
+      synchronize(list);
+      token = peek(list);
+      continue;
+    }
 
     if (tail == NULL) {
       head = statement;
@@ -25,6 +48,11 @@ Statement* parse(List* list) {
   }
 
   free(list);
+
+  if (error) {
+    return NULL;
+  }
+
   return head;
 }
 
@@ -55,12 +83,18 @@ Statement* parseStatement(List* list) {
       break;
   }
 
-  Token* semicolon = dequeue(list);
+  if (panic) {
+    return NULL;
+  }
+
+  Token* semicolon = peek(list);
   if (semicolon->type != T_SEMICOLON) {
-    printf("\nERR: Expected ';' at/before '%s' on line %d.", semicolon->lexeme,
+    printf("ERR: Expected ';' at/before '%s' on line %d.\n", semicolon->lexeme,
            semicolon->line);
     parserError();
+    return NULL;
   }
+  dequeue(list);
   freeToken(semicolon);
 
   return result;
@@ -77,12 +111,14 @@ Declaration* parseDeclaration(List* list) {
   Declaration* result = (Declaration*)malloc(sizeof(Declaration));
   result->expression = NULL;
 
-  Token* identifier = dequeue(list);
+  Token* identifier = peek(list);
   if (identifier->type != T_IDENTIFIER) {
-    printf("\nERR: Expected identifier at '%s' on line %d.\n",
-           identifier->lexeme, identifier->line);
+    printf("ERR: Expected identifier at '%s' on line %d.\n", identifier->lexeme,
+           identifier->line);
     parserError();
+    return NULL;
   }
+  dequeue(list);
   result->identifier = identifier;
 
   Token* next = peek(list);
@@ -91,10 +127,10 @@ Declaration* parseDeclaration(List* list) {
     freeToken(next);
 
     result->expression = parseExpression(list);
-  // }else if (next->type != T_SEMICOLON) {
-  //   printf("\nERR: Unexpected token at '%s' on line %d.\n", identifier->lexeme,
-  //          identifier->line);
-  //   parserError();
+
+    if (panic) {
+      return NULL;
+    }
   }
 
   return result;
@@ -118,6 +154,10 @@ Expression* parseExpression(List* list) {
     assign->expression = parseExpression(list);
     result->content.assignmentExpression = assign;
 
+    if (panic) {
+      return NULL;
+    }
+
     return result;
   }
 
@@ -127,6 +167,11 @@ Expression* parseExpression(List* list) {
 
 Expression* arithmatic(List* list) {
   Expression* termRes = term(list);
+
+  if (panic) {
+    return NULL;
+  }
+
   Token* op = peek(list);
 
   while (op->type == T_PLUS || op->type == T_MINUS) {
@@ -150,6 +195,10 @@ Expression* arithmatic(List* list) {
 
     binEx->right = term(list);
 
+    if (panic) {
+      return NULL;
+    }
+
     res->content.binaryExpression = binEx;
 
     termRes = res;
@@ -161,6 +210,11 @@ Expression* arithmatic(List* list) {
 
 Expression* term(List* list) {
   Expression* factorRes = factor(list);
+
+  if (panic) {
+    return NULL;
+  }
+
   Token* op = peek(list);
 
   while (op->type == T_STAR || op->type == T_SLASH || op->type == T_PERCENT) {
@@ -187,6 +241,10 @@ Expression* term(List* list) {
 
     binEx->right = factor(list);
 
+    if (panic) {
+      return NULL;
+    }
+
     res->content.binaryExpression = binEx;
 
     factorRes = res;
@@ -200,7 +258,7 @@ Expression* factor(List* list) {
   Expression* head = NULL;
   Expression* tail = NULL;
 
-  Token* token = dequeue(list);
+  Token* token = peek(list);
 
   while (token->type == T_MINUS) {
     freeToken(token);
@@ -219,13 +277,15 @@ Expression* factor(List* list) {
       tail = unaryExp;
     }
 
-    token = dequeue(list);
+    dequeue(list);
+    token = peek(list);
   }
 
   Expression* nakedRes = (Expression*)malloc(sizeof(Expression));
 
   switch (token->type) {
     case T_IDENTIFIER:
+      dequeue(list);
       nakedRes->type = E_VARIABLE;
       VariableExpression* variable =
           (VariableExpression*)malloc(sizeof(VariableExpression));
@@ -233,6 +293,7 @@ Expression* factor(List* list) {
       nakedRes->content.variableExpression = variable;
       break;
     case T_NUMBER:
+      dequeue(list);
       nakedRes->type = E_LITERAL;
       LiteralExpression* literal =
           (LiteralExpression*)malloc(sizeof(LiteralExpression));
@@ -241,25 +302,29 @@ Expression* factor(List* list) {
       freeToken(token);
       break;
     case T_LPAR:
-    freeToken(token);
+      dequeue(list);
+      freeToken(token);
       nakedRes->type = E_GROUPING;
       GroupingExpression* grouping =
           (GroupingExpression*)malloc(sizeof(GroupingExpression));
       grouping->expression = arithmatic(list);
       nakedRes->content.groupingExpression = grouping;
 
-      Token* rightPar = dequeue(list);
+      Token* rightPar = peek(list);
       if (rightPar->type != T_RPAR) {
-        printf("\nERR: Expected '(' at '%s' on line %d.\n", rightPar->lexeme,
+        printf("ERR: Expected ')' at '%s' on line %d.\n", rightPar->lexeme,
                rightPar->line);
         parserError();
+        return NULL;
       }
+      dequeue(list);
       freeToken(rightPar);
       break;
     default:
-      printf("\nERR: Unexpected token at '%s' on line %d.\n", token->lexeme,
+      printf("ERR: Unexpected token at '%s' on line %d.\n", token->lexeme,
              token->line);
       parserError();
+      return NULL;
       break;
   }
 

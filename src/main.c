@@ -27,7 +27,14 @@ int main(int argc, char* argv[]) {
     n = n->next;
   }
 
+  printf("\n\n");
+
   Statement* top = parse(tokenList);
+
+  if (top == NULL) {
+    printf("\nParser failed.");
+    return;
+  }
 
   printf("\n\nParser Pretty Print:\n");
   Statement* stmt = top;

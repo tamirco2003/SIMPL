@@ -1,7 +1,5 @@
-- Free the tokens.
 - Free the tree.
 - Free the slaves. Just free everything (BUT CAREFUL OF UAF!!!).
-- Improve scanner error reporting.
 - Improve syntax error handling and add panic-mode recovery.
 - Add conditionals.
 

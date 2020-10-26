@@ -96,9 +96,11 @@ List* scan() {
         break;
       case '/':
         getNextChar();
-        if (peekNextChar() == '/')
-          while (getNextChar() != '\n');
-        else
+        if (peekNextChar() == '/') {
+          while (peekNextChar() != '\n') {
+            getNextChar();
+          }
+        } else
           addToken(list, T_SLASH, line, "/");
         break;
       case '(':

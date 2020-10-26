@@ -5,7 +5,8 @@
 - Rewritten scanner to be less bad.
 - Generalized dictionary and evaluator.
 - Single line comments!
-- Freeing and freeing and freeing!
+- Freeing tokens.
+- Added parser error recovery.
 
 ## V1
 
