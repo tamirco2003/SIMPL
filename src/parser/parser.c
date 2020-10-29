@@ -14,8 +14,12 @@ void parserError() {
 }
 
 void synchronize(List* list) {
-  while (dequeue(list)->type != T_SEMICOLON && peek(list)->type != T_EOF)
-    ;
+  Token* next = dequeue(list);
+  while (next->type != T_SEMICOLON && peek(list)->type != T_EOF) {
+    freeToken(next);
+    next = dequeue(list);
+  }
+  freeToken(next);
   panic = false;
 }
 
