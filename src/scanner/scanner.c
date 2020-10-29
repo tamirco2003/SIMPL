@@ -7,7 +7,7 @@
 #include "filehandler.h"
 
 #define KEYWORD_COUNT 2
-static char* keywords[KEYWORD_COUNT] = {"print", "let"};
+static const char* const keywords[KEYWORD_COUNT] = {"print", "let"};
 #define FIRST_KEYWORD T_PRINT
 
 void scannerError() { exit(1); }

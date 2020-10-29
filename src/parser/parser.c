@@ -32,17 +32,15 @@ Statement* parse(List* list) {
 
     if (panic) {
       synchronize(list);
-      token = peek(list);
-      continue;
-    }
-
-    if (tail == NULL) {
-      head = statement;
     } else {
-      tail->next = statement;
-    }
+      if (tail == NULL) {
+        head = statement;
+      } else {
+        tail->next = statement;
+      }
 
-    tail = statement;
+      tail = statement;
+    }
 
     token = peek(list);
   }
@@ -103,6 +101,12 @@ Statement* parseStatement(List* list) {
 PrintStatement* parsePrint(List* list) {
   PrintStatement* result = (PrintStatement*)malloc(sizeof(PrintStatement));
   result->expression = parseExpression(list);
+
+  // Works without this if statement, does returning null matter if panic is on?
+  // Sometimes yes, otherwise function would continue.
+  if (panic) {
+    return NULL;
+  }
 
   return result;
 }
@@ -176,7 +180,6 @@ Expression* arithmatic(List* list) {
 
   while (op->type == T_PLUS || op->type == T_MINUS) {
     dequeue(list);
-    freeToken(op);
 
     Expression* res = (Expression*)malloc(sizeof(Expression));
     res->type = E_BINARY;
@@ -202,6 +205,8 @@ Expression* arithmatic(List* list) {
     res->content.binaryExpression = binEx;
 
     termRes = res;
+
+    freeToken(op);
     op = peek(list);
   }
 
@@ -219,7 +224,6 @@ Expression* term(List* list) {
 
   while (op->type == T_STAR || op->type == T_SLASH || op->type == T_PERCENT) {
     dequeue(list);
-    freeToken(op);
 
     Expression* res = (Expression*)malloc(sizeof(Expression));
     res->type = E_BINARY;
@@ -248,6 +252,8 @@ Expression* term(List* list) {
     res->content.binaryExpression = binEx;
 
     factorRes = res;
+
+    freeToken(op);
     op = peek(list);
   }
 

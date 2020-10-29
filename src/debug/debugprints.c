@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 // String representations of token types.
-static char* TokenTypeString[] = {
+static const char* const TokenTypeString[] = {
     "PLUS",   "MINUS",   "STAR",   "SLASH",      "LPAR",  "RPAR", "SEMICOLON",
     "EQUALS", "PERCENT", "NUMBER", "IDENTIFIER", "PRINT", "LET",  "EOF"};
 
