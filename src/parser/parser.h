@@ -5,7 +5,7 @@
 #include "..\ast.h"
 #include "..\tokenlist.h"
 
-// Exits the program when parser encounters an error.
+// Longjmps (TIME TRAVEL!) when error is encountered.
 void parserError();
 
 // Main parsing function. Takes in token list and calls parseStatement.

@@ -1,16 +1,16 @@
 #include "parser.h"
 
+#include <setjmp.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 static bool error;
-static bool panic;
+static jmp_buf error_buf;
 
-// void parserError() { exit(1); }
 void parserError() {
   error = true;
-  panic = true;
+  longjmp(error_buf, 1);
 }
 
 void synchronize(List* list) {
@@ -20,23 +20,19 @@ void synchronize(List* list) {
     next = dequeue(list);
   }
   freeToken(next);
-  panic = false;
 }
 
 Statement* parse(List* list) {
   error = false;
-  panic = false;
 
   Statement* head = NULL;
   Statement* tail = NULL;
 
   Token* token = peek(list);
   while (token->type != T_EOF) {
-    Statement* statement = parseStatement(list);
+    if (!setjmp(error_buf)) {
+      Statement* statement = parseStatement(list);
 
-    if (panic) {
-      synchronize(list);
-    } else {
       if (tail == NULL) {
         head = statement;
       } else {
@@ -44,6 +40,8 @@ Statement* parse(List* list) {
       }
 
       tail = statement;
+    } else {
+      synchronize(list);
     }
 
     token = peek(list);
@@ -85,16 +83,11 @@ Statement* parseStatement(List* list) {
       break;
   }
 
-  if (panic) {
-    return NULL;
-  }
-
   Token* semicolon = peek(list);
   if (semicolon->type != T_SEMICOLON) {
     printf("ERR: Expected ';' at/before '%s' on line %d.\n", semicolon->lexeme,
            semicolon->line);
     parserError();
-    return NULL;
   }
   dequeue(list);
   freeToken(semicolon);
@@ -105,12 +98,6 @@ Statement* parseStatement(List* list) {
 PrintStatement* parsePrint(List* list) {
   PrintStatement* result = (PrintStatement*)malloc(sizeof(PrintStatement));
   result->expression = parseExpression(list);
-
-  // Works without this if statement, does returning null matter if panic is on?
-  // Sometimes yes, otherwise function would continue.
-  if (panic) {
-    return NULL;
-  }
 
   return result;
 }
@@ -124,7 +111,6 @@ Declaration* parseDeclaration(List* list) {
     printf("ERR: Expected identifier at '%s' on line %d.\n", identifier->lexeme,
            identifier->line);
     parserError();
-    return NULL;
   }
   dequeue(list);
   result->identifier = identifier;
@@ -135,10 +121,6 @@ Declaration* parseDeclaration(List* list) {
     freeToken(next);
 
     result->expression = parseExpression(list);
-
-    if (panic) {
-      return NULL;
-    }
   }
 
   return result;
@@ -162,10 +144,6 @@ Expression* parseExpression(List* list) {
     assign->expression = parseExpression(list);
     result->content.assignmentExpression = assign;
 
-    if (panic) {
-      return NULL;
-    }
-
     return result;
   }
 
@@ -175,10 +153,6 @@ Expression* parseExpression(List* list) {
 
 Expression* arithmatic(List* list) {
   Expression* termRes = term(list);
-
-  if (panic) {
-    return NULL;
-  }
 
   Token* op = peek(list);
 
@@ -202,10 +176,6 @@ Expression* arithmatic(List* list) {
 
     binEx->right = term(list);
 
-    if (panic) {
-      return NULL;
-    }
-
     res->content.binaryExpression = binEx;
 
     termRes = res;
@@ -219,10 +189,6 @@ Expression* arithmatic(List* list) {
 
 Expression* term(List* list) {
   Expression* factorRes = factor(list);
-
-  if (panic) {
-    return NULL;
-  }
 
   Token* op = peek(list);
 
@@ -248,10 +214,6 @@ Expression* term(List* list) {
     }
 
     binEx->right = factor(list);
-
-    if (panic) {
-      return NULL;
-    }
 
     res->content.binaryExpression = binEx;
 
@@ -302,15 +264,18 @@ Expression* factor(List* list) {
       variable->identifier = token;
       nakedRes->content.variableExpression = variable;
       break;
+
     case T_NUMBER:
       dequeue(list);
       nakedRes->type = E_LITERAL;
       LiteralExpression* literal =
           (LiteralExpression*)malloc(sizeof(LiteralExpression));
+      literal->type = L_NUMBER;
       literal->value.number = atof(token->lexeme);
       nakedRes->content.literalExpression = literal;
       freeToken(token);
       break;
+
     case T_LPAR:
       dequeue(list);
       freeToken(token);
@@ -325,16 +290,15 @@ Expression* factor(List* list) {
         printf("ERR: Expected ')' at '%s' on line %d.\n", rightPar->lexeme,
                rightPar->line);
         parserError();
-        return NULL;
       }
       dequeue(list);
       freeToken(rightPar);
       break;
+
     default:
       printf("ERR: Unexpected token at '%s' on line %d.\n", token->lexeme,
              token->line);
       parserError();
-      return NULL;
       break;
   }
 

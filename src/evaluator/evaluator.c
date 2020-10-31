@@ -66,52 +66,10 @@ LiteralExpression* evaluateExpression(Expression* expression) {
           expression->content.groupingExpression->expression);
     case E_LITERAL:
       return expression->content.literalExpression;
-
-      // printf("WARNING: SHOULD NOT PRINT (Literal post-evaluation)\n");
-      // break;
-
     case E_ASSIGNMENT:
       return evaluateAssignment(expression->content.assignmentExpression);
-      // {
-      //   Token* identifier =
-      //   expression->content.assignmentExpression->identifier;
-
-      //   DictEntry* var = getFromDict(
-      //       dictionary,
-      //       expression->content.assignmentExpression->identifier->lexeme);
-      //   if (var == NULL) {
-      //     printf("ERR: Unrecognized identifier '%s' on line %d.",
-      //            identifier->lexeme, identifier->line);
-      //     runtimeError();
-      //   }
-
-      //   double value = evaluateExpression(
-      //       expression->content.assignmentExpression->expression);
-      //   var->value = value;
-      //   return value;
-
-      //   printf("WARNING: SHOULD NOT PRINT (Assignment
-      //   post-evaluation)\n"); break;
-      // }
-
     case E_VARIABLE:
       return evaluateVariable(expression->content.variableExpression);
-      // {
-      //   Token* identifier =
-      //   expression->content.assignmentExpression->identifier; DictEntry*
-      //   var = getFromDict(dictionary, identifier->lexeme);
-
-      //   if (var == NULL) {
-      //     printf("ERR: Unrecognized identifier '%s' on line %d.",
-      //            identifier->lexeme, identifier->line);
-      //     runtimeError();
-      //   }
-
-      //   return var->value;
-
-      //   printf("WARNING: SHOULD NOT PRINT (Variable post-evaluation)\n");
-      //   break;
-      // }
   }
 
   printf(
