@@ -21,6 +21,9 @@ char* number();
 // Returns a char pointer to a string containing the keyword currently being
 // scanned.
 char* keyword();
+// Returns a char pointer to a string containing the string literal currently
+// being scanned.
+char* stringLit(int line);
 
 // Takes in char pointer and returns type of keyword, reserved or
 // identifier.

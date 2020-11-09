@@ -64,6 +64,60 @@ char* keyword() {
   return toString(head, length);
 }
 
+char* stringLit(int line) {
+  char first = getNextChar();
+  int length = 0;
+
+  CharNode* head = createCharNode(first);
+  CharNode* tail = head;
+
+  char c = peekNextChar();
+  while (c != first) {
+    // Handle unclosed strings.
+    if (c == '\n' || c == EOF) {
+      printf("\nERR: Unclosed string literal on line '%d'.\n", line);
+      scannerError();
+    }
+    // Handle escape sequences.
+    if (c == '\\') {
+      getNextChar();
+      c = peekNextChar();
+      switch (c) {
+        case 'b':
+          tail->next = createCharNode('\b');
+          break;
+        case 't':
+          tail->next = createCharNode('\t');
+          break;
+        case 'n':
+          tail->next = createCharNode('\n');
+          break;
+        case 'f':
+          tail->next = createCharNode('\f');
+          break;
+        case 'r':
+          tail->next = createCharNode('\r');
+          break;
+        default:
+          tail->next = createCharNode(c);
+          break;
+      }
+    } else {
+      tail->next = createCharNode(c);
+    }
+
+    getNextChar();
+    tail = tail->next;
+    length++;
+    c = peekNextChar();
+  }
+
+  getNextChar();  // Get rid of trailing quote.
+  CharNode* stringStart = head->next;
+  free(head);
+  return toString(stringStart, length);
+}
+
 TokenType keywordType(char* keyword) {
   for (int i = 0; i < KEYWORD_COUNT; i++) {
     if (strcmp(keywords[i], keyword) == 0) {
@@ -122,6 +176,11 @@ List* scan() {
       case '%':
         getNextChar();
         addToken(list, T_PERCENT, line, "%");
+        break;
+      case '\'':
+      case '"':
+        char* stringLiteral = stringLit(line);
+        addToken(list, T_STRING, line, stringLiteral);
         break;
       case '\n':
         line++;

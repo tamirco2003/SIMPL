@@ -10,6 +10,10 @@ CharNode* createCharNode(char value) {
 }
 
 char* toString(CharNode* charNode, int length) {
+  if (length == 0 || charNode == NULL) {
+    return "";
+  }
+
   CharNode* currentNode = charNode;
   char* string = calloc(length + 1, sizeof(char));
 

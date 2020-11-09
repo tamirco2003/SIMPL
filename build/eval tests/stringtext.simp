@@ -1,0 +1,12 @@
+let xd = "'lmao'";
+let yd = '"mmao"';
+let zd = "\\";
+
+print xd;
+print yd;
+print zd;
+
+print xd + yd;
+print xd + yd + zd;
+print xd + "5";
+print xd - "5";

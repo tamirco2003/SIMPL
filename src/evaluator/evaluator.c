@@ -1,15 +1,19 @@
 #include "evaluator.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "dictionary.h"
+#include "scope.h"
 
 void runtimeError() { exit(1); }
 
-static DictEntry** dictionary;
+// static DictEntry** dictionary;
+static Scope* scope;
 
 void evaluate(Statement* statement) {
-  dictionary = createDict();
+  // dictionary = createDict();
+  scope = createScope(NULL);
 
   while (statement != NULL) {
     evaluateStatement(statement);
@@ -32,26 +36,38 @@ void evaluateStatement(Statement* statement) {
 }
 
 void evaluateDeclaration(Declaration* declaration) {
-  if (getFromDict(dictionary, declaration->identifier->lexeme) != NULL) {
+  LiteralExpression* value;
+
+  if (declaration->expression != NULL) {
+    value = evaluateExpression(declaration->expression);
+  } else {
+    value = (LiteralExpression*)malloc(sizeof(LiteralExpression));
+    value->type = L_UNDEFINED;
+  }
+
+  if (!declareVar(scope, declaration->identifier, value)) {
     printf("ERR: Redefined variable '%s' on line %d.",
            declaration->identifier->lexeme, declaration->identifier->line);
     runtimeError();
   }
-
-  LiteralExpression* value = NULL;
-  if (declaration->expression != NULL) {
-    value = evaluateExpression(declaration->expression);
-  }
-  setDict(dictionary, declaration->identifier->lexeme, value);
 }
 
 void evaluatePrint(PrintStatement* printStatement) {
   LiteralExpression* value = evaluateExpression(printStatement->expression);
 
   switch (value->type) {
+    case L_UNDEFINED:
+      printf("undefined\n");
+      break;
     case L_NUMBER:
       printf("%f\n", value->value.number);
       break;
+    case L_STRING:
+      printf("%s\n", value->value.string);
+      break;
+    default:
+      printf("ERR: Unrecognized type!\n");
+      runtimeError();
   }
 }
 
@@ -111,9 +127,41 @@ LiteralExpression* evaluateBinaryExpression(
     // free(left);
     // free(right);
     return result;
+  } else if (left->type == L_STRING && right->type == L_STRING) {
+    result->type = L_STRING;
+
+    if (binaryExpression->type == B_ADD) {
+      char* strResult = calloc(1, sizeof(char));
+      strcat(strResult, left->value.string);
+      strcat(strResult, right->value.string);
+
+      result->value.string = strResult;
+      return result;
+    }
+  } else if (binaryExpression->type == B_MUL) {
+    result->type = L_STRING;
+
+    char* originalStr;
+    int times;
+
+    if (left->type == L_STRING && right->type == L_NUMBER) {
+      originalStr = left->value.string;
+      times = right->value.number;
+    } else if (left->type == L_NUMBER && right->type == L_STRING) {
+      originalStr = right->value.string;
+      times = left->value.number;
+    }
+
+    char* strResult = "";
+    for (int i = 0; i < times; i++) {
+      strcat(strResult, originalStr);
+    }
+
+    result->value.string;
+    return result;
   }
 
-  printf("ERR: Bad binary thingy.\n");
+  printf("ERR: Binary expression type mismatch!\n");
   runtimeError();
   return NULL;
 }
@@ -142,30 +190,25 @@ LiteralExpression* evaluateUnaryExpression(UnaryExpression* unaryExpression) {
 }
 
 LiteralExpression* evaluateAssignment(AssignmentExpression* assignment) {
-  Token* identifier = assignment->identifier;
+  LiteralExpression* value = evaluateExpression(assignment->expression);
 
-  DictEntry* var = getFromDict(dictionary, identifier->lexeme);
-
-  if (var == NULL) {
-    printf("ERR: Unrecognized identifier '%s' on line %d.", identifier->lexeme,
-           identifier->line);
+  if (!assignVar(scope, assignment->identifier, value)) {
+    printf("ERR: Unrecognized identifier '%s' on line %d.",
+           assignment->identifier->lexeme, assignment->identifier->line);
     runtimeError();
   }
 
-  LiteralExpression* value = evaluateExpression(assignment->expression);
-  var->value = value;
   return value;
 }
 
 LiteralExpression* evaluateVariable(VariableExpression* variable) {
-  Token* identifier = variable->identifier;
-  DictEntry* var = getFromDict(dictionary, identifier->lexeme);
+  LiteralExpression* value = getVar(scope, variable->identifier);
 
-  if (var == NULL) {
-    printf("ERR: Unrecognized identifier '%s' on line %d.", identifier->lexeme,
-           identifier->line);
+  if (value == NULL) {
+    printf("ERR: Unrecognized identifier '%s' on line %d.",
+           variable->identifier->lexeme, variable->identifier->line);
     runtimeError();
   }
 
-  return var->value;
+  return value;
 }

@@ -17,9 +17,13 @@ void printStatement(Statement* stmt);
 void printDeclaration(Declaration* decl, int depth);
 
 // Takes in expression pointer and depth, pretty prints the expression and its
-// contents indented according to depth. Calls printAssignment,
+// contents indented according to depth. Calls printLiteral, printAssignment,
 // printBinaryExpression, printUnaryExpression, and itself accordingly.
 void printExpression(Expression* expr, int depth);
+
+// Takes in literal expression pointer and depth, pretty prints the literal and
+// its contents indented according to depth.
+void printLiteral(LiteralExpression* literal, int depth);
 
 // Takes in assignment pointer and depth, pretty prints the assignment and its
 // contents indented according to depth. Calls printExpression accordingly.

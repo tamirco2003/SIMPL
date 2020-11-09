@@ -1,6 +1,5 @@
 - Free the tree.
 - Free the slaves. Just free everything (BUT CAREFUL OF UAF!!!).
-- Improve syntax error handling and add panic-mode recovery.
 - Add conditionals.
 
 Possible improvements:

@@ -256,16 +256,16 @@ Expression* factor(List* list) {
   Expression* nakedRes = (Expression*)malloc(sizeof(Expression));
 
   switch (token->type) {
-    case T_IDENTIFIER:
+    case T_IDENTIFIER: {
       dequeue(list);
       nakedRes->type = E_VARIABLE;
       VariableExpression* variable =
           (VariableExpression*)malloc(sizeof(VariableExpression));
       variable->identifier = token;
       nakedRes->content.variableExpression = variable;
-      break;
+    } break;
 
-    case T_NUMBER:
+    case T_NUMBER: {
       dequeue(list);
       nakedRes->type = E_LITERAL;
       LiteralExpression* literal =
@@ -274,9 +274,9 @@ Expression* factor(List* list) {
       literal->value.number = atof(token->lexeme);
       nakedRes->content.literalExpression = literal;
       freeToken(token);
-      break;
+    } break;
 
-    case T_LPAR:
+    case T_LPAR: {
       dequeue(list);
       freeToken(token);
       nakedRes->type = E_GROUPING;
@@ -293,8 +293,18 @@ Expression* factor(List* list) {
       }
       dequeue(list);
       freeToken(rightPar);
-      break;
-
+    } break;
+    case T_STRING: {
+      dequeue(list);
+      nakedRes->type = E_LITERAL;
+      LiteralExpression* literal =
+          (LiteralExpression*)malloc(sizeof(LiteralExpression));
+      literal->type = L_STRING;
+      literal->value.string = token->lexeme;
+      nakedRes->content.literalExpression = literal;
+      // Don't free lexeme.
+      free(token);
+    } break;
     default:
       printf("ERR: Unexpected token at '%s' on line %d.\n", token->lexeme,
              token->line);

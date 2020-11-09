@@ -1,0 +1,16 @@
+let x = 10;
+
+let y = x = 20;
+
+let z;
+
+//e = 2;
+
+print x;
+print y;
+print z;
+
+print 0;
+
+print x + y;
+print -z;

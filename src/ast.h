@@ -75,6 +75,7 @@ struct _binaryExpression {
     B_DIV,
     B_MOD,
   } type;
+
   Expression* left;
   Expression* right;
 };
@@ -95,10 +96,14 @@ struct _groupingExpression {
 // Defines literals. Includes value.
 struct _literalExpression {
   enum LiteralType {
+    L_UNDEFINED,
     L_NUMBER,
+    L_STRING,
   } type;
+
   union LiteralValue {
     double number;
+    char* string;
   } value;
 };
 

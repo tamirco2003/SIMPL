@@ -4,12 +4,15 @@
 
 // String representations of token types.
 static const char* const TokenTypeString[] = {
-    "PLUS",   "MINUS",   "STAR",   "SLASH",      "LPAR",  "RPAR", "SEMICOLON",
-    "EQUALS", "PERCENT", "NUMBER", "IDENTIFIER", "PRINT", "LET",  "EOF"};
+    "PLUS",       "MINUS",     "STAR",   "SLASH",   "LPAR",
+    "RPAR",       "SEMICOLON", "EQUALS", "PERCENT", "NUMBER",
+    "IDENTIFIER", "STRING",    "PRINT",  "LET",     "EOF"};
 
 void printToken(Token* token) {
   if (token->type == T_NUMBER || token->type == T_IDENTIFIER) {
     printf("%s ", token->lexeme);
+  } else if (token->type == T_STRING) {
+    printf("\"%s\" ", token->lexeme);
   } else {
     printf("%s ", TokenTypeString[token->type]);
     if (token->type == T_SEMICOLON) {
@@ -45,7 +48,7 @@ void printDeclaration(Declaration* decl, int depth) {
   if (decl->expression != NULL) {
     printExpression(decl->expression, depth + 1);
   }
-  
+
   printf("%*c}\n", depth * 4, ' ');
 }
 
@@ -65,8 +68,9 @@ void printExpression(Expression* expr, int depth) {
       printf("%*c}\n", (depth + 1) * 4, ' ');
       break;
     case E_LITERAL:
-      printf("%*cLiteral: %f\n", (depth + 1) * 4, ' ',
-             expr->content.literalExpression->value.number);
+      // printf("%*cLiteral: %f\n", (depth + 1) * 4, ' ',
+      //        expr->content.literalExpression->value.number);
+      printLiteral(expr->content.literalExpression, depth + 1);
       break;
     case E_ASSIGNMENT:
       printAssignment(expr->content.assignmentExpression, depth + 1);
@@ -78,6 +82,21 @@ void printExpression(Expression* expr, int depth) {
   }
 
   printf("%*c}\n", depth * 4, ' ');
+}
+
+void printLiteral(LiteralExpression* literal, int depth) {
+  printf("%*cLiteral: ", depth * 4, ' ');
+  switch (literal->type) {
+    case L_UNDEFINED:
+      printf("undefined\n");
+      break;
+    case L_NUMBER:
+      printf("%f\n", literal->value.number);
+      break;
+    case L_STRING:
+      printf("\"%s\"\n", literal->value.string);
+      break;
+  }
 }
 
 void printAssignment(AssignmentExpression* assignment, int depth) {

@@ -14,8 +14,12 @@ typedef enum _tokenType {
   T_EQUALS,
   T_PERCENT,
 
+  // T_SINGLEQUOTE,
+  // T_DOUBLEQUOTE,
+
   T_NUMBER,
   T_IDENTIFIER,
+  T_STRING,
 
   T_PRINT,
   T_LET,
