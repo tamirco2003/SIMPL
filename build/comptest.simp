@@ -1,0 +1,16 @@
+let x = 1 == 1;
+let y = 1 + 2 != 5 - 2;
+let z = 2 and not (not x or not y);
+
+print x;
+print y;
+print z;
+
+print "Or, leftmost true or rightmost.";
+print "" or 0 or "lmao" or 30 or 0;
+print 0 or "" or 0;
+
+
+print "And, leftmost false or rightmost.";
+print "" and 0 and "lmao" and 30 and 0;
+print "lmao" and 30 and "xd";

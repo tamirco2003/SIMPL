@@ -148,7 +148,143 @@ Expression* parseExpression(List* list) {
   }
 
   push(list, first);
-  return arithmatic(list);
+  return disjunction(list);
+}
+
+Expression* disjunction(List* list) {
+  Expression* conjunctionRes = conjunction(list);
+
+  Token* op = peek(list);
+
+  while (op->type == T_OR) {
+    dequeue(list);
+
+    Expression* res = (Expression*)malloc(sizeof(Expression));
+    res->type = E_BINARY;
+
+    BinaryExpression* binEx =
+        (BinaryExpression*)malloc(sizeof(BinaryExpression));
+    binEx->type = B_OR;
+    binEx->left = conjunctionRes;
+    binEx->right = conjunction(list);
+
+    res->content.binaryExpression = binEx;
+
+    conjunctionRes = res;
+    freeToken(op);  // PROBLEM! Freeing strings initialized without malloc...
+    op = peek(list);
+  }
+
+  return conjunctionRes;
+}
+
+Expression* conjunction(List* list) {
+  Expression* inversionRes = inversion(list);
+
+  Token* op = peek(list);
+
+  while (op->type == T_AND) {
+    dequeue(list);
+
+    Expression* res = (Expression*)malloc(sizeof(Expression));
+    res->type = E_BINARY;
+
+    BinaryExpression* binEx =
+        (BinaryExpression*)malloc(sizeof(BinaryExpression));
+    binEx->type = B_AND;
+    binEx->left = inversionRes;
+    binEx->right = inversion(list);
+
+    res->content.binaryExpression = binEx;
+
+    inversionRes = res;
+    freeToken(op);  // ERR! Freeing strings initialized without malloc...
+    op = peek(list);
+  }
+
+  return inversionRes;
+}
+
+Expression* inversion(List* list) {
+  Expression* head = NULL;
+  Expression* tail = NULL;
+
+  Token* token = peek(list);
+
+  while (token->type == T_NOT) {
+    freeToken(token);
+
+    Expression* unaryExp = (Expression*)malloc(sizeof(Expression));
+    unaryExp->type = E_UNARY;
+    UnaryExpression* unary = (UnaryExpression*)malloc(sizeof(UnaryExpression));
+    unary->type = U_NOT;
+    unaryExp->content.unaryExpression = unary;
+
+    if (head == NULL) {
+      head = unaryExp;
+      tail = unaryExp;
+    } else {
+      tail->content.unaryExpression->right = unaryExp;
+      tail = unaryExp;
+    }
+
+    dequeue(list);
+    token = peek(list);
+  }
+
+  Expression* nakedRes = comparison(list);
+
+  if (tail == NULL) {
+    return nakedRes;
+  }
+
+  tail->content.unaryExpression->right = nakedRes;
+  return head;
+}
+
+Expression* comparison(List* list) {
+  Expression* arithmaticRes = arithmatic(list);
+
+  Token* token = peek(list);
+
+  if (token->type == T_COMP_EQUALS || token->type == T_COMP_LT ||
+      token->type == T_COMP_LTE || token->type == T_COMP_GT ||
+      token->type == T_COMP_GTE || token->type == T_COMP_NE) {
+    dequeue(list);
+
+    Expression* result = (Expression*)malloc(sizeof(Expression));
+    result->type = E_BINARY;
+    BinaryExpression* binEx =
+        (BinaryExpression*)malloc(sizeof(BinaryExpression));
+    binEx->left = arithmaticRes;
+    binEx->right = arithmatic(list);
+
+    switch (token->type) {
+      case T_COMP_EQUALS:
+        binEx->type = B_EQUAL;
+        break;
+      case T_COMP_LT:
+        binEx->type = B_LT;
+        break;
+      case T_COMP_LTE:
+        binEx->type = B_LTE;
+        break;
+      case T_COMP_GT:
+        binEx->type = B_GT;
+        break;
+      case T_COMP_GTE:
+        binEx->type = B_GTE;
+        break;
+      case T_COMP_NE:
+        binEx->type = B_NE;
+        break;
+    }
+
+    result->content.binaryExpression = binEx;
+    return result;
+  }
+
+  return arithmaticRes;
 }
 
 Expression* arithmatic(List* list) {
@@ -282,7 +418,7 @@ Expression* factor(List* list) {
       nakedRes->type = E_GROUPING;
       GroupingExpression* grouping =
           (GroupingExpression*)malloc(sizeof(GroupingExpression));
-      grouping->expression = arithmatic(list);
+      grouping->expression = parseExpression(list);
       nakedRes->content.groupingExpression = grouping;
 
       Token* rightPar = peek(list);

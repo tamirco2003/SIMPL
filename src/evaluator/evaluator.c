@@ -102,7 +102,55 @@ LiteralExpression* evaluateBinaryExpression(
   LiteralExpression* result =
       (LiteralExpression*)malloc(sizeof(LiteralExpression));
 
-  if (left->type == L_NUMBER && right->type == L_NUMBER) {
+  if (binaryExpression->type == B_OR) {
+    if (isTruthy(left)) {
+      return left;
+    }
+    
+    return right;
+  } else if (binaryExpression->type == B_AND) {
+    if (isTruthy(left)) {
+      return right;
+    }
+
+    return left;
+  } else if (binaryExpression->type == B_EQUAL) {
+    result->type = L_NUMBER;
+
+    if (left->type != right->type) {
+      result->value.number = 0;
+    } else if (left->type == L_UNDEFINED) {
+      result->value.number = 1;
+    } else if (left->type == L_NUMBER) {
+      result->value.number = left->value.number == right->value.number;
+    } else if (left->type == L_STRING) {
+      if (strcmp(left->value.string, right->value.string) == 0) {
+        result->value.number = 1;
+      } else {
+        result->value.number = 0;
+      }
+    }
+
+    return result;
+  } else if (binaryExpression->type == B_NE) {
+    result->type = L_NUMBER;
+
+    if (left->type != right->type) {
+      result->value.number = 1;
+    } else if (left->type == L_UNDEFINED) {
+      result->value.number = 0;
+    } else if (left->type == L_NUMBER) {
+      result->value.number = left->value.number != right->value.number;
+    } else if (left->type == L_STRING) {
+      result->value.number = 1;
+
+      if (strcmp(left->value.string, right->value.string) == 0) {
+        result->value.number = 0;
+      }
+    }
+
+    return result;
+  } else if (left->type == L_NUMBER && right->type == L_NUMBER) {
     result->type = L_NUMBER;
     switch (binaryExpression->type) {
       case B_ADD:
@@ -120,6 +168,18 @@ LiteralExpression* evaluateBinaryExpression(
       case B_MOD:
         result->value.number =
             (int)left->value.number % (int)right->value.number;
+        break;
+      case B_LT:
+        result->value.number = left->value.number < right->value.number;
+        break;
+      case B_LTE:
+        result->value.number = left->value.number <= right->value.number;
+        break;
+      case B_GT:
+        result->value.number = left->value.number > right->value.number;
+        break;
+      case B_GTE:
+        result->value.number = left->value.number >= right->value.number;
         break;
     }
 
@@ -177,6 +237,14 @@ LiteralExpression* evaluateUnaryExpression(UnaryExpression* unaryExpression) {
     switch (unaryExpression->type) {
       case U_MINUS:
         result->value.number = -value->value.number;
+        break;
+      case U_NOT:
+        if (value->value.number == 0) {
+          result->value.number = 1;
+        } else {
+          result->value.number = 0;
+        }
+        break;
     }
 
     // free(unaryExpression);
@@ -211,4 +279,26 @@ LiteralExpression* evaluateVariable(VariableExpression* variable) {
   }
 
   return value;
+}
+
+int isTruthy(LiteralExpression* value) {
+  if (value->type == L_UNDEFINED) {
+    return 0;
+  }
+
+  if (value->type == L_NUMBER) {
+    if (value->value.number == 0) {
+      return 0;
+    }
+    return 1;
+  }
+
+  if (value->type == L_STRING) {
+    if (value->value.string[0] == '\0') {
+      return 0;
+    }
+    return 1;
+  }
+
+  return 0;
 }

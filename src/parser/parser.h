@@ -24,8 +24,16 @@ PrintStatement* parsePrint(List* list);
 Declaration* parseDeclaration(List* list);
 
 // Main expression parsing function. Takes in token list, calls itself if
-// assignment is found, otherwise calls arithmatic.
+// assignment is found, otherwise calls disjunction.
 Expression* parseExpression(List* list);
+
+Expression* disjunction(List* list);
+
+Expression* conjunction(List* list);
+
+Expression* inversion(List* list);
+
+Expression* comparison(List* list);
 
 // Top level arithmatic parsing function, handles addition and subtraction.
 // Takes in token list, calls term, and checks for addition and subtraction.

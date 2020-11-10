@@ -11,6 +11,7 @@ EQUALS
 PERCENT
 NUMBER
 IDENTIFIER
+STRING
 PRINT
 LET
 EOF
@@ -28,7 +29,7 @@ arithmatic -> term | arithmatic PLUS term | arithmatic MINUS term
 
 term -> factor | term STAR factor | term SLASH factor | term PERCENT factor
 
-factor -> MINUS* (IDENTIFIER | NUMBER | LPAR arithmatic RPAR)
+factor -> MINUS* (IDENTIFIER | NUMBER | LPAR arithmatic RPAR | STRING)
 
 ---------------------------------------------
 GRAMMAR WITHOUT LEFT RECURSION:
@@ -45,4 +46,4 @@ rightExpression -> PLUS term [rightExpression] | MINUS term [rightExpression]
 term -> factor [rightTerm]
 rightTerm -> STAR factor [rightTerm] | SLASH factor [rightTerm] | PERCENT factor [rightTerm]
 
-factor -> MINUS* (IDENTIFIER | NUMBER | LPAR arithmatic RPAR)
+factor -> MINUS* (IDENTIFIER | NUMBER | LPAR arithmatic RPAR | STRING)

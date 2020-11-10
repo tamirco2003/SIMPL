@@ -45,4 +45,6 @@ LiteralExpression* evaluateAssignment(AssignmentExpression* assignment);
 // expression pointer.
 LiteralExpression* evaluateVariable(VariableExpression* variable);
 
+int isTruthy(LiteralExpression* value);
+
 #endif

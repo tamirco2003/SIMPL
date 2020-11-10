@@ -6,8 +6,9 @@
 #include "charlist.h"
 #include "filehandler.h"
 
-#define KEYWORD_COUNT 2
-static const char* const keywords[KEYWORD_COUNT] = {"print", "let"};
+#define KEYWORD_COUNT 5
+static const char* const keywords[KEYWORD_COUNT] = {"print", "let", "or", "and",
+                                                    "not"};
 #define FIRST_KEYWORD T_PRINT
 
 void scannerError() { exit(1); }
@@ -171,11 +172,47 @@ List* scan() {
         break;
       case '=':
         getNextChar();
-        addToken(list, T_EQUALS, line, "=");
+
+        if (peekNextChar() == '=') {
+          getNextChar();
+          addToken(list, T_COMP_EQUALS, line, "==");
+        } else
+          addToken(list, T_EQUALS, line, "=");
+
         break;
       case '%':
         getNextChar();
         addToken(list, T_PERCENT, line, "%");
+        break;
+      case '<':
+        getNextChar();
+
+        if (peekNextChar() == '=') {
+          getNextChar();
+          addToken(list, T_COMP_LTE, line, "<=");
+        } else
+          addToken(list, T_COMP_LT, line, "<");
+
+        break;
+      case '>':
+        getNextChar();
+
+        if (peekNextChar() == '=') {
+          getNextChar();
+          addToken(list, T_COMP_GTE, line, ">=");
+        } else
+          addToken(list, T_COMP_GT, line, ">");
+
+        break;
+      case '!':
+        getNextChar();
+        if (getNextChar() == '=') {
+          addToken(list, T_COMP_NE, line, "!=");
+        } else {
+          printf("\nERR: Unrecognized character '!' on line '%d'\n", c, line);
+          scannerError();
+        }
+
         break;
       case '\'':
       case '"':

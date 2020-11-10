@@ -9,6 +9,18 @@ RPAR
 SEMICOLON
 EQUALS
 PERCENT
+
+OR
+AND
+NOT
+
+COMP_EQUALS
+COMP_LT
+COMP_LTE
+COMP_GT
+COMP_GTE
+COMP_NE
+
 NUMBER
 IDENTIFIER
 STRING
@@ -23,13 +35,22 @@ script -> statement* EOF
 
 statement -> PRINT expression SEMICOLON | LET IDENTIFIER [EQUALS expression] SEMICOLON | expression SEMICOLON
 
-expression -> IDENTIFIER EQUALS expression | arithmatic
+expression -> IDENTIFIER EQUALS expression | disjunction
+
+disjunction -> conjunction | disjunction OR conjunction
+
+conjunction -> inversion | conjunction AND inversion
+
+inversion -> comparison | NOT inversion
+
+comparison -> arithmatic (compOp arithmatic)*
+compOp -> COMP_EQUALS | COMP_LT | COMP_LTE | COMP_GT | COMP_GTE | COMP_NE
 
 arithmatic -> term | arithmatic PLUS term | arithmatic MINUS term
 
 term -> factor | term STAR factor | term SLASH factor | term PERCENT factor
 
-factor -> MINUS* (IDENTIFIER | NUMBER | LPAR arithmatic RPAR | STRING)
+factor -> MINUS* (IDENTIFIER | NUMBER | LPAR expression RPAR | STRING)
 
 ---------------------------------------------
 GRAMMAR WITHOUT LEFT RECURSION:
@@ -38,7 +59,16 @@ script -> statement* EOF
 
 statement -> PRINT expression SEMICOLON | LET IDENTIFIER [EQUALS expression] SEMICOLON | expression SEMICOLON
 
-expression -> IDENTIFIER EQUALS expression | arithmatic
+expression -> IDENTIFIER EQUALS expression | disjunction
+
+disjunction -> conjunction (OR conjunction)*
+
+conjunction -> inversion (AND inversion)*
+
+inversion -> comparison | NOT inversion
+
+comparison -> arithmatic (compOp arithmatic)*
+compOp -> COMP_EQUALS | COMP_LT | COMP_LTE | COMP_GT | COMP_GTE | COMP_NE
 
 arithmatic -> term [rightExpression]
 rightExpression -> PLUS term [rightExpression] | MINUS term [rightExpression]
@@ -46,4 +76,4 @@ rightExpression -> PLUS term [rightExpression] | MINUS term [rightExpression]
 term -> factor [rightTerm]
 rightTerm -> STAR factor [rightTerm] | SLASH factor [rightTerm] | PERCENT factor [rightTerm]
 
-factor -> MINUS* (IDENTIFIER | NUMBER | LPAR arithmatic RPAR | STRING)
+factor -> MINUS* (IDENTIFIER | NUMBER | LPAR expression RPAR | STRING)

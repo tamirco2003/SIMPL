@@ -4,9 +4,10 @@
 
 // String representations of token types.
 static const char* const TokenTypeString[] = {
-    "PLUS",       "MINUS",     "STAR",   "SLASH",   "LPAR",
-    "RPAR",       "SEMICOLON", "EQUALS", "PERCENT", "NUMBER",
-    "IDENTIFIER", "STRING",    "PRINT",  "LET",     "EOF"};
+    "PLUS",      "MINUS",    "STAR",    "SLASH",       "LPAR",       "RPAR",
+    "SEMICOLON", "EQUALS",   "PERCENT", "COMP_EQUALS", "COMP_LT",    "COMP_LTE",
+    "COMP_GT",   "COMP_GTE", "COMP_NE", "NUMBER",      "IDENTIFIER", "STRING",
+    "PRINT",     "LET",      "OR",      "AND",         "NOT",        "EOF"};
 
 void printToken(Token* token) {
   if (token->type == T_NUMBER || token->type == T_IDENTIFIER) {
@@ -126,6 +127,33 @@ void printBinaryExpression(BinaryExpression* binaryExpression, int depth) {
     case B_MOD:
       printf("Mod {\n");
       break;
+    case B_OR:
+      printf("Or {\n");
+      break;
+    case B_AND:
+      printf("And {\n");
+      break;
+    case B_EQUAL:
+      printf("Equal {\n");
+      break;
+    case B_LT:
+      printf("Less than {\n");
+      break;
+    case B_LTE:
+      printf("Less than or equal {\n");
+      break;
+    case B_GT:
+      printf("Greater than {\n");
+      break;
+    case B_GTE:
+      printf("Greater than or equal {\n");
+      break;
+    case B_NE:
+      printf("Not equal {\n");
+      break;
+    default:
+      printf("No implementation in debug {\n");
+      break;
   }
 
   printf("%*cLeft {\n", (depth + 1) * 4, ' ');
@@ -146,7 +174,14 @@ void printUnaryExpression(UnaryExpression* unaryExpression, int depth) {
     case U_MINUS:
       printf("Minus {\n");
       break;
+    case U_NOT:
+      printf("Not {\n");
+      break;
+    default:
+      printf("No implementation in debug {\n");
+      break;
   }
 
   printExpression(unaryExpression->right, depth + 1);
+  printf("%*c}\n", depth * 4, ' ');
 }

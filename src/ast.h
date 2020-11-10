@@ -74,6 +74,14 @@ struct _binaryExpression {
     B_MUL,
     B_DIV,
     B_MOD,
+    B_OR,
+    B_AND,
+    B_EQUAL,
+    B_LT,
+    B_LTE,
+    B_GT,
+    B_GTE,
+    B_NE,
   } type;
 
   Expression* left;
@@ -84,6 +92,7 @@ struct _binaryExpression {
 struct _unaryExpression {
   enum UnxpType {
     U_MINUS,
+    U_NOT,
   } type;
   Expression* right;
 };

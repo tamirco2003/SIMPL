@@ -14,8 +14,12 @@ typedef enum _tokenType {
   T_EQUALS,
   T_PERCENT,
 
-  // T_SINGLEQUOTE,
-  // T_DOUBLEQUOTE,
+  T_COMP_EQUALS,
+  T_COMP_LT,
+  T_COMP_LTE,
+  T_COMP_GT,
+  T_COMP_GTE,
+  T_COMP_NE,
 
   T_NUMBER,
   T_IDENTIFIER,
@@ -23,6 +27,9 @@ typedef enum _tokenType {
 
   T_PRINT,
   T_LET,
+  T_OR,
+  T_AND,
+  T_NOT,
 
   T_EOF,
 } TokenType;
