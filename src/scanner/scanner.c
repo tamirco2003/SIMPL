@@ -6,9 +6,9 @@
 #include "charlist.h"
 #include "filehandler.h"
 
-#define KEYWORD_COUNT 7
+#define KEYWORD_COUNT 9
 static const char* const keywords[KEYWORD_COUNT] = {
-    "print", "let", "or", "and", "not", "if", "else"};
+    "print", "let", "or", "and", "not", "if", "else", "while", "do"};
 #define FIRST_KEYWORD T_PRINT
 
 void scannerError() { exit(1); }

@@ -8,7 +8,7 @@ static const char* const TokenTypeString[] = {
     "SEMICOLON",  "EQUALS",   "PERCENT", "COMP_EQUALS", "COMP_LT", "COMP_LTE",
     "COMP_GT",    "COMP_GTE", "COMP_NE", "LBRACE",      "RBRACE",  "NUMBER",
     "IDENTIFIER", "STRING",   "PRINT",   "LET",         "OR",      "AND",
-    "NOT",        "IF",       "ELSE",    "EOF"};
+    "NOT",        "IF",       "ELSE",    "WHILE",       "DO",      "EOF"};
 
 void printToken(Token* token) {
   if (token->type == T_NUMBER || token->type == T_IDENTIFIER) {
@@ -51,6 +51,14 @@ void printStatement(Statement* stmt, int depth) {
     case S_IF:
       printf("If {\n");
       printIfStatement(stmt->content.ifStatement, depth + 1);
+      break;
+    case S_WHILE:
+      printf("While {\n");
+      printWhileStatement(stmt->content.whileStatement, depth + 1);
+      break;
+    case S_DOWHILE:
+      printf("Do While {\n");
+      printDoWhileStatement(stmt->content.whileStatement, depth + 1);
       break;
     default:
       printf("Unknown statement type.\n");
@@ -99,6 +107,34 @@ void printIfStatement(IfStatement* stmt, int depth) {
     printStatement(stmt->elseBody, depth + 2);
     printf("%*c}\n", (depth + 1) * 4, ' ');
   }
+  printf("%*c}\n", depth * 4, ' ');
+}
+
+void printWhileStatement(WhileStatement* stmt, int depth) {
+  printf("%*cWhile {\n", depth * 4, ' ');
+
+  printf("%*cCondition {\n", (depth + 1) * 4, ' ');
+  printExpression(stmt->condition, depth + 2);
+  printf("%*c}\n", (depth + 1) * 4, ' ');
+
+  printf("%*cBody {\n", (depth + 1) * 4, ' ');
+  printStatement(stmt->body, depth + 2);
+  printf("%*c}\n", (depth + 1) * 4, ' ');
+
+  printf("%*c}\n", depth * 4, ' ');
+}
+
+void printDoWhileStatement(WhileStatement* stmt, int depth) {
+  printf("%*cDo While {\n", depth * 4, ' ');
+
+  printf("%*cBody {\n", (depth + 1) * 4, ' ');
+  printStatement(stmt->body, depth + 2);
+  printf("%*c}\n", (depth + 1) * 4, ' ');
+
+  printf("%*cCondition {\n", (depth + 1) * 4, ' ');
+  printExpression(stmt->condition, depth + 2);
+  printf("%*c}\n", (depth + 1) * 4, ' ');
+
   printf("%*c}\n", depth * 4, ' ');
 }
 

@@ -20,6 +20,10 @@ void printDeclaration(Declaration* decl, int depth);
 
 void printIfStatement(IfStatement* stmt, int depth);
 
+void printWhileStatement(WhileStatement* stmt, int depth);
+
+void printDoWhileStatement(WhileStatement* stmt, int depth);
+
 // Takes in expression pointer and depth, pretty prints the expression and its
 // contents indented according to depth. Calls printLiteral, printAssignment,
 // printBinaryExpression, printUnaryExpression, and itself accordingly.

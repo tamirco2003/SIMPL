@@ -27,6 +27,10 @@ void evaluatePrint(PrintStatement* printStatement);
 
 void evaluateIf(IfStatement* ifStatement);
 
+void evaluateWhile(WhileStatement* whileStatement);
+
+void evaluateDoWhile(WhileStatement* whileStatement);
+
 // Takes in a expression pointer, evaluates it, and returns a literal expression
 // pointer. Calls evaluateBinaryExpression, evaluateUnaryExpression,
 // evaluateAssignment, evaluateVariable, and itself.

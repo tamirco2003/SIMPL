@@ -29,6 +29,10 @@ Declaration* parseDeclaration(List* list);
 
 IfStatement* parseIfStatement(List* list);
 
+WhileStatement* parseWhileStatement(List* list);
+
+WhileStatement* parseDoWhileStatement(List* list);
+
 // Main expression parsing function. Takes in token list, calls itself if
 // assignment is found, otherwise calls disjunction.
 Expression* parseExpression(List* list);

@@ -7,6 +7,7 @@
 // Declarations and aliases for abstract syntax tree structs.
 typedef struct _statement Statement;
 typedef struct _ifStatement IfStatement;
+typedef struct _whileStatement WhileStatement;
 typedef struct _declaration Declaration;
 typedef struct _printStatement PrintStatement;
 typedef struct _expression Expression;
@@ -25,6 +26,8 @@ struct _statement {
     S_DECLARATION,
     S_PRINT,
     S_IF,
+    S_WHILE,
+    S_DOWHILE,
   } type;
 
   union StatementContent {
@@ -33,6 +36,7 @@ struct _statement {
     Declaration* declaration;
     PrintStatement* printStatement;
     IfStatement* ifStatement;
+    WhileStatement* whileStatement;
   } content;
 
   Statement* next;
@@ -42,6 +46,11 @@ struct _ifStatement {
   Expression* condition;
   Statement* body;
   Statement* elseBody;
+};
+
+struct _whileStatement {
+  Expression* condition;
+  Statement* body;
 };
 
 // Defines declaration. Includes identifier and expression.

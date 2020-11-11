@@ -61,7 +61,7 @@ Statement* parseStatement(List* list) {
   result->next = NULL;
 
   Token* token = peek(list);
-  
+
   switch (token->type) {
     case T_LBRACE:
       dequeue(list);
@@ -90,6 +90,20 @@ Statement* parseStatement(List* list) {
 
       result->type = S_IF;
       result->content.ifStatement = parseIfStatement(list);
+      break;
+    case T_WHILE:
+      dequeue(list);
+      freeToken(token);
+
+      result->type = S_WHILE;
+      result->content.whileStatement = parseWhileStatement(list);
+      break;
+    case T_DO:
+      dequeue(list);
+      freeToken(token);
+
+      result->type = S_DOWHILE;
+      result->content.whileStatement = parseDoWhileStatement(list);
       break;
     default:
       result->type = S_EXPRESSION;
@@ -227,6 +241,84 @@ IfStatement* parseIfStatement(List* list) {
   } else {
     result->elseBody = NULL;
   }
+
+  return result;
+}
+
+WhileStatement* parseWhileStatement(List* list) {
+  WhileStatement* result = (WhileStatement*)malloc(sizeof(WhileStatement));
+
+  Token* expected;
+
+  expected = peek(list);
+  if (expected->type != T_LPAR) {
+    printf("ERR: Expected '(' at '%s' on line %d.\n", expected->lexeme,
+           expected->line);
+    parserError();
+  }
+  dequeue(list);
+  freeToken(expected);
+
+  result->condition = parseExpression(list);
+
+  expected = peek(list);
+  if (expected->type != T_RPAR) {
+    printf("ERR: Expected ')' at '%s' on line %d.\n", expected->lexeme,
+           expected->line);
+    parserError();
+  }
+  dequeue(list);
+  freeToken(expected);
+
+  result->body = parseStatement(list);
+
+  return result;
+}
+
+WhileStatement* parseDoWhileStatement(List* list) {
+  WhileStatement* result = (WhileStatement*)malloc(sizeof(WhileStatement));
+
+  result->body = parseStatement(list);
+
+  Token* expected;
+
+  expected = peek(list);
+  if (expected->type != T_WHILE) {
+    printf("ERR: Expected 'while' at '%s' on line %d.\n", expected->lexeme,
+           expected->line);
+    parserError();
+  }
+  dequeue(list);
+  freeToken(expected);
+
+  expected = peek(list);
+  if (expected->type != T_LPAR) {
+    printf("ERR: Expected '(' at '%s' on line %d.\n", expected->lexeme,
+           expected->line);
+    parserError();
+  }
+  dequeue(list);
+  freeToken(expected);
+
+  result->condition = parseExpression(list);
+
+  expected = peek(list);
+  if (expected->type != T_RPAR) {
+    printf("ERR: Expected ')' at '%s' on line %d.\n", expected->lexeme,
+           expected->line);
+    parserError();
+  }
+  dequeue(list);
+  freeToken(expected);
+
+  expected = peek(list);
+  if (expected->type != T_SEMICOLON) {
+    printf("ERR: Expected ';' at '%s' on line %d.\n", expected->lexeme,
+           expected->line);
+    parserError();
+  }
+  dequeue(list);
+  freeToken(expected);
 
   return result;
 }

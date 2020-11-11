@@ -17,6 +17,9 @@ COMP_GT
 COMP_GTE
 COMP_NE
 
+LBRACE
+RBRACE
+
 NUMBER
 IDENTIFIER
 STRING
@@ -26,6 +29,10 @@ LET
 OR
 AND
 NOT
+IF
+ELSE
+WHILE
+DO
 
 EOF
 
@@ -34,7 +41,18 @@ GRAMMAR:
 
 script -> statement* EOF
 
-statement -> PRINT expression SEMICOLON | LET IDENTIFIER [EQUALS expression] SEMICOLON | expression SEMICOLON
+statement -> LBRACE statement* RBRACE
+           | expression SEMICOLON
+           | LET IDENTIFIER [EQUALS expression] SEMICOLON
+           | PRINT expression SEMICOLON
+           | ifStatement
+           | whileStatement
+           | doWhileStatement
+
+ifStatement -> IF LPAR expression RPAR statement [else statement]
+
+whileStatement -> WHILE LPAR expression RPAR statement
+doWhileStatement -> DO statement WHILE LPAR expression RPAR SEMICOLON
 
 expression -> IDENTIFIER EQUALS expression | disjunction
 
@@ -58,7 +76,18 @@ GRAMMAR WITHOUT LEFT RECURSION:
 
 script -> statement* EOF
 
-statement -> PRINT expression SEMICOLON | LET IDENTIFIER [EQUALS expression] SEMICOLON | expression SEMICOLON
+statement -> LBRACE statement* RBRACE
+           | PRINT expression SEMICOLON
+           | LET IDENTIFIER [EQUALS expression] SEMICOLON
+           | expression SEMICOLON
+           | ifStatement
+           | whileStatement
+           | doWhileStatement
+
+ifStatement -> IF LPAR expression RPAR statement [ELSE statement]
+
+whileStatement -> WHILE LPAR expression RPAR statement
+doWhileStatement -> DO statement WHILE LPAR expression RPAR SEMICOLON
 
 expression -> IDENTIFIER EQUALS expression | disjunction
 

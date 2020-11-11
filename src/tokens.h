@@ -35,6 +35,8 @@ typedef enum _tokenType {
   T_NOT,
   T_IF,
   T_ELSE,
+  T_WHILE,
+  T_DO,
 
   T_EOF,
 } TokenType;

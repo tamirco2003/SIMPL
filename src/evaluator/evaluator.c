@@ -38,6 +38,12 @@ void evaluateStatement(Statement* statement) {
     case S_IF:
       evaluateIf(statement->content.ifStatement);
       break;
+    case S_WHILE:
+      evaluateWhile(statement->content.whileStatement);
+      break;
+    case S_DOWHILE:
+      evaluateDoWhile(statement->content.whileStatement);
+      break;
     default:
       printf("ERR: Unrecognized statement type.\n");
       runtimeError();
@@ -98,6 +104,18 @@ void evaluateIf(IfStatement* ifStatement) {
   } else if (ifStatement->elseBody != NULL) {
     evaluateBlock(ifStatement->elseBody);
   }
+}
+
+void evaluateWhile(WhileStatement* whileStatement) {
+  while (isTruthy(evaluateExpression(whileStatement->condition))) {
+    evaluateBlock(whileStatement->body);
+  }
+}
+
+void evaluateDoWhile(WhileStatement* whileStatement) {
+  do {
+    evaluateBlock(whileStatement->body);
+  } while (isTruthy(evaluateExpression(whileStatement->condition)));
 }
 
 LiteralExpression* evaluateExpression(Expression* expression) {
