@@ -23,6 +23,9 @@ void evaluate(Statement* statement) {
 
 void evaluateStatement(Statement* statement) {
   switch (statement->type) {
+    case S_BLOCK:
+      evaluateBlock(statement->content.blockBody);
+      break;
     case S_DECLARATION:
       evaluateDeclaration(statement->content.declaration);
       break;
@@ -32,7 +35,25 @@ void evaluateStatement(Statement* statement) {
     case S_PRINT:
       evaluatePrint(statement->content.printStatement);
       break;
+    case S_IF:
+      evaluateIf(statement->content.ifStatement);
+      break;
+    default:
+      printf("ERR: Unrecognized statement type.\n");
+      runtimeError();
+      break;
   }
+}
+
+void evaluateBlock(Statement* statement) {
+  scope = createScope(scope);
+
+  while (statement != NULL) {
+    evaluateStatement(statement);
+    statement = statement->next;
+  }
+
+  scope = destroyScope(scope);
 }
 
 void evaluateDeclaration(Declaration* declaration) {
@@ -71,6 +92,14 @@ void evaluatePrint(PrintStatement* printStatement) {
   }
 }
 
+void evaluateIf(IfStatement* ifStatement) {
+  if (isTruthy(evaluateExpression(ifStatement->condition))) {
+    evaluateBlock(ifStatement->body);
+  } else if (ifStatement->elseBody != NULL) {
+    evaluateBlock(ifStatement->elseBody);
+  }
+}
+
 LiteralExpression* evaluateExpression(Expression* expression) {
   switch (expression->type) {
     case E_BINARY:
@@ -106,7 +135,7 @@ LiteralExpression* evaluateBinaryExpression(
     if (isTruthy(left)) {
       return left;
     }
-    
+
     return right;
   } else if (binaryExpression->type == B_AND) {
     if (isTruthy(left)) {

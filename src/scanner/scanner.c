@@ -6,9 +6,9 @@
 #include "charlist.h"
 #include "filehandler.h"
 
-#define KEYWORD_COUNT 5
-static const char* const keywords[KEYWORD_COUNT] = {"print", "let", "or", "and",
-                                                    "not"};
+#define KEYWORD_COUNT 7
+static const char* const keywords[KEYWORD_COUNT] = {
+    "print", "let", "or", "and", "not", "if", "else"};
 #define FIRST_KEYWORD T_PRINT
 
 void scannerError() { exit(1); }
@@ -76,7 +76,7 @@ char* stringLit(int line) {
   while (c != first) {
     // Handle unclosed strings.
     if (c == '\n' || c == EOF) {
-      printf("\nERR: Unclosed string literal on line '%d'.\n", line);
+      printf("ERR: Unclosed string literal on line '%d'.\n", line);
       scannerError();
     }
     // Handle escape sequences.
@@ -209,10 +209,18 @@ List* scan() {
         if (getNextChar() == '=') {
           addToken(list, T_COMP_NE, line, "!=");
         } else {
-          printf("\nERR: Unrecognized character '!' on line '%d'\n", c, line);
+          printf("ERR: Unrecognized character '!' on line '%d'\n", c, line);
           scannerError();
         }
 
+        break;
+      case '{':
+        getNextChar();
+        addToken(list, T_LBRACE, line, "{");
+        break;
+      case '}':
+        getNextChar();
+        addToken(list, T_RBRACE, line, "}");
         break;
       case '\'':
       case '"':
@@ -231,7 +239,7 @@ List* scan() {
           char* num = number();
 
           if (num == NULL) {
-            printf("\nERR: Multiple decimal points found on line '%d'\n", line);
+            printf("ERR: Multiple decimal points found on line '%d'\n", line);
             scannerError();
           }
 
@@ -242,7 +250,7 @@ List* scan() {
 
           addToken(list, type, line, name);
         } else {
-          printf("\nERR: Unrecognized character '%c' on line '%d'\n", c, line);
+          printf("ERR: Unrecognized character '%c' on line '%d'\n", c, line);
           scannerError();
         }
         break;

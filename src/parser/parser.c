@@ -61,8 +61,15 @@ Statement* parseStatement(List* list) {
   result->next = NULL;
 
   Token* token = peek(list);
-
+  
   switch (token->type) {
+    case T_LBRACE:
+      dequeue(list);
+      freeToken(token);
+
+      result->type = S_BLOCK;
+      result->content.blockBody = parseBlock(list);
+      break;
     case T_PRINT:
       dequeue(list);
       freeToken(token);
@@ -77,16 +84,29 @@ Statement* parseStatement(List* list) {
       result->type = S_DECLARATION;
       result->content.declaration = parseDeclaration(list);
       break;
+    case T_IF:
+      dequeue(list);
+      freeToken(token);
+
+      result->type = S_IF;
+      result->content.ifStatement = parseIfStatement(list);
+      break;
     default:
       result->type = S_EXPRESSION;
-      result->content.expression = parseExpression(list);
+      result->content.expression = parseExpressionStatement(list);
       break;
   }
 
+  return result;
+}
+
+Expression* parseExpressionStatement(List* list) {
+  Expression* result = parseExpression(list);
+
   Token* semicolon = peek(list);
   if (semicolon->type != T_SEMICOLON) {
-    printf("ERR: Expected ';' at/before '%s' on line %d.\n", semicolon->lexeme,
-           semicolon->line);
+    printf("ERR (exprstmt): Expected ';' at/before '%s' on line %d.\n",
+           semicolon->lexeme, semicolon->line);
     parserError();
   }
   dequeue(list);
@@ -95,9 +115,47 @@ Statement* parseStatement(List* list) {
   return result;
 }
 
+Statement* parseBlock(List* list) {
+  Statement* head = NULL;
+  Statement* tail = NULL;
+
+  Token* next = peek(list);
+  while (next->type != T_RBRACE) {
+    if (next->type == T_EOF) {
+      printf("ERR: Unclosed block, expected '}' before end of file.\n");
+      parserError();
+    }
+
+    Statement* stmt = parseStatement(list);
+
+    if (tail == NULL) {
+      head = stmt;
+    } else {
+      tail->next = stmt;
+    }
+
+    tail = stmt;
+
+    next = peek(list);
+  }
+  dequeue(list);
+  freeToken(next);
+
+  return head;
+}
+
 PrintStatement* parsePrint(List* list) {
   PrintStatement* result = (PrintStatement*)malloc(sizeof(PrintStatement));
   result->expression = parseExpression(list);
+
+  Token* semicolon = peek(list);
+  if (semicolon->type != T_SEMICOLON) {
+    printf("ERR (print): Expected ';' at/before '%s' on line %d.\n",
+           semicolon->lexeme, semicolon->line);
+    parserError();
+  }
+  dequeue(list);
+  freeToken(semicolon);
 
   return result;
 }
@@ -121,6 +179,53 @@ Declaration* parseDeclaration(List* list) {
     freeToken(next);
 
     result->expression = parseExpression(list);
+  }
+
+  Token* semicolon = peek(list);
+  if (semicolon->type != T_SEMICOLON) {
+    printf("ERR (decl): Expected ';' at/before '%s' on line %d.\n",
+           semicolon->lexeme, semicolon->line);
+    parserError();
+  }
+  dequeue(list);
+  freeToken(semicolon);
+
+  return result;
+}
+
+IfStatement* parseIfStatement(List* list) {
+  IfStatement* result = (IfStatement*)malloc(sizeof(IfStatement));
+
+  Token* expected;
+
+  expected = peek(list);
+  if (expected->type != T_LPAR) {
+    printf("ERR: Expected '(' at '%s' on line %d.\n", expected->lexeme,
+           expected->line);
+    parserError();
+  }
+  dequeue(list);
+  freeToken(expected);
+
+  result->condition = parseExpression(list);
+
+  expected = peek(list);
+  if (expected->type != T_RPAR) {
+    printf("ERR: Expected ')' at '%s' on line %d.\n", expected->lexeme,
+           expected->line);
+    parserError();
+  }
+  dequeue(list);
+  freeToken(expected);
+
+  result->body = parseStatement(list);
+
+  expected = peek(list);
+  if (expected->type == T_ELSE) {
+    dequeue(list);
+    result->elseBody = parseStatement(list);
+  } else {
+    result->elseBody = NULL;
   }
 
   return result;

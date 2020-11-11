@@ -21,6 +21,9 @@ typedef enum _tokenType {
   T_COMP_GTE,
   T_COMP_NE,
 
+  T_LBRACE,
+  T_RBRACE,
+
   T_NUMBER,
   T_IDENTIFIER,
   T_STRING,
@@ -30,6 +33,8 @@ typedef enum _tokenType {
   T_OR,
   T_AND,
   T_NOT,
+  T_IF,
+  T_ELSE,
 
   T_EOF,
 } TokenType;

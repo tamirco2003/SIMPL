@@ -15,6 +15,8 @@ typedef struct _scope {
 // scope, calls createDict;
 Scope* createScope(Scope* enclosing);
 
+Scope* destroyScope(Scope* scope);
+
 // Takes in a scope pointer, token pointer "identifier", and LiteralExpression
 // pointer "value". If identifier doesn't already exist in scope, adds value to
 // the dictionary with key identifier. Calls getFromDict and setDict.

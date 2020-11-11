@@ -4,10 +4,11 @@
 
 // String representations of token types.
 static const char* const TokenTypeString[] = {
-    "PLUS",      "MINUS",    "STAR",    "SLASH",       "LPAR",       "RPAR",
-    "SEMICOLON", "EQUALS",   "PERCENT", "COMP_EQUALS", "COMP_LT",    "COMP_LTE",
-    "COMP_GT",   "COMP_GTE", "COMP_NE", "NUMBER",      "IDENTIFIER", "STRING",
-    "PRINT",     "LET",      "OR",      "AND",         "NOT",        "EOF"};
+    "PLUS",       "MINUS",    "STAR",    "SLASH",       "LPAR",    "RPAR",
+    "SEMICOLON",  "EQUALS",   "PERCENT", "COMP_EQUALS", "COMP_LT", "COMP_LTE",
+    "COMP_GT",    "COMP_GTE", "COMP_NE", "LBRACE",      "RBRACE",  "NUMBER",
+    "IDENTIFIER", "STRING",   "PRINT",   "LET",         "OR",      "AND",
+    "NOT",        "IF",       "ELSE",    "EOF"};
 
 void printToken(Token* token) {
   if (token->type == T_NUMBER || token->type == T_IDENTIFIER) {
@@ -16,30 +17,59 @@ void printToken(Token* token) {
     printf("\"%s\" ", token->lexeme);
   } else {
     printf("%s ", TokenTypeString[token->type]);
-    if (token->type == T_SEMICOLON) {
+    if (token->type == T_SEMICOLON || token->type == T_LBRACE ||
+        token->type == T_RBRACE) {
       printf("\n");
     }
   }
 }
 
-void printStatement(Statement* stmt) {
-  printf("Statement : ");
+void printStatement(Statement* stmt, int depth) {
+  if (depth == 0) {
+    printf("Statement : ");
+  } else {
+    printf("%*cStatement : ", depth * 4, ' ');
+  }
+
   switch (stmt->type) {
+    case S_BLOCK:
+      printf("Block {\n");
+      printBlockStatement(stmt->content.blockBody, depth + 1);
+      break;
     case S_EXPRESSION:
       printf("Expression {\n");
-      printExpression(stmt->content.expression, 1);
+      printExpression(stmt->content.expression, depth + 1);
       break;
     case S_DECLARATION:
       printf("Declaration {\n");
-      printDeclaration(stmt->content.declaration, 1);
+      printDeclaration(stmt->content.declaration, depth + 1);
       break;
     case S_PRINT:
       printf("Print {\n");
-      printExpression(stmt->content.printStatement->expression, 1);
+      printExpression(stmt->content.printStatement->expression, depth + 1);
+      break;
+    case S_IF:
+      printf("If {\n");
+      printIfStatement(stmt->content.ifStatement, depth + 1);
+      break;
+    default:
+      printf("Unknown statement type.\n");
       break;
   }
 
-  printf("}\n\n");
+  if (depth == 0) {
+    printf("}\n\n");
+  } else {
+    printf("%*c}\n\n", depth * 4, ' ');
+  }
+}
+
+void printBlockStatement(Statement* stmt, int depth) {
+  Statement* currentStmt = stmt;
+  while (currentStmt != NULL) {
+    printStatement(currentStmt, depth);
+    currentStmt = currentStmt->next;
+  }
 }
 
 void printDeclaration(Declaration* decl, int depth) {
@@ -50,6 +80,25 @@ void printDeclaration(Declaration* decl, int depth) {
     printExpression(decl->expression, depth + 1);
   }
 
+  printf("%*c}\n", depth * 4, ' ');
+}
+
+void printIfStatement(IfStatement* stmt, int depth) {
+  printf("%*cIf {\n", depth * 4, ' ');
+
+  printf("%*cCondition {\n", (depth + 1) * 4, ' ');
+  printExpression(stmt->condition, depth + 2);
+  printf("%*c}\n", (depth + 1) * 4, ' ');
+
+  printf("%*cBody {\n", (depth + 1) * 4, ' ');
+  printStatement(stmt->body, depth + 2);
+  printf("%*c}\n", (depth + 1) * 4, ' ');
+
+  if (stmt->elseBody != NULL) {
+    printf("%*cElse {\n", (depth + 1) * 4, ' ');
+    printStatement(stmt->elseBody, depth + 2);
+    printf("%*c}\n", (depth + 1) * 4, ' ');
+  }
   printf("%*c}\n", depth * 4, ' ');
 }
 

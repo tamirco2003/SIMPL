@@ -6,6 +6,7 @@
 
 // Declarations and aliases for abstract syntax tree structs.
 typedef struct _statement Statement;
+typedef struct _ifStatement IfStatement;
 typedef struct _declaration Declaration;
 typedef struct _printStatement PrintStatement;
 typedef struct _expression Expression;
@@ -19,18 +20,28 @@ typedef struct _variableExpression VariableExpression;
 // Defines statement. Includes type, type-relevant content, and next statement.
 struct _statement {
   enum StatementType {
+    S_BLOCK,
     S_EXPRESSION,
     S_DECLARATION,
     S_PRINT,
+    S_IF,
   } type;
 
   union StatementContent {
+    Statement* blockBody;
     Expression* expression;
     Declaration* declaration;
     PrintStatement* printStatement;
+    IfStatement* ifStatement;
   } content;
 
   Statement* next;
+};
+
+struct _ifStatement {
+  Expression* condition;
+  Statement* body;
+  Statement* elseBody;
 };
 
 // Defines declaration. Includes identifier and expression.

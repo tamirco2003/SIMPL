@@ -19,6 +19,20 @@ DictEntry** createDict() {
   return dict;
 }
 
+void destroyDict(DictEntry** dict) {
+  for (int i = 0; i < DICTIONARY_SIZE; i++) {
+    freeDictEntry(dict[i]);
+  }
+  free(dict);
+}
+
+void freeDictEntry(DictEntry* dictEntry) {
+  if (dictEntry == NULL) return;
+
+  freeDictEntry(dictEntry->next);
+  free(dictEntry);
+}
+
 DictEntry* getFromDict(DictEntry** dict, char* key) {
   int hash = hashKey(key);
   DictEntry* entry = dict[hash];

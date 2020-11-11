@@ -11,6 +11,8 @@ void runtimeError();
 // by calling evaluateStatement.
 void evaluate(Statement* firstStatement);
 
+void evaluateBlock(Statement* statement);
+
 // Takes in a statement pointer and evaluates it. Calls evaluateExpression.
 // evaluateDeclaration, and evaluatePrint accordingly.
 void evaluateStatement(Statement* statement);
@@ -22,6 +24,8 @@ void evaluateDeclaration(Declaration* declaration);
 // Takes in a print statement pointer and evaluates it. Calls
 // evaluateExpression.
 void evaluatePrint(PrintStatement* printStatement);
+
+void evaluateIf(IfStatement* ifStatement);
 
 // Takes in a expression pointer, evaluates it, and returns a literal expression
 // pointer. Calls evaluateBinaryExpression, evaluateUnaryExpression,

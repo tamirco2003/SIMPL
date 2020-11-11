@@ -9,6 +9,13 @@ Scope* createScope(Scope* enclosing) {
   return newScope;
 }
 
+Scope* destroyScope(Scope* scope) {
+  destroyDict(scope->entries);
+  Scope* enclosing = scope->enclosing;
+  free(scope);
+  return enclosing;
+}
+
 bool declareVar(Scope* scope, Token* identifier, LiteralExpression* value) {
   DictEntry** dict = scope->entries;
 

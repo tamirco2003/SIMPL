@@ -1,0 +1,13 @@
+let x = 2;
+let y = 2;
+
+if (x == y)
+  if (x == 2)
+    print "x is y is 2";
+  else
+    print "x is y is not 2";
+    //print "xd";
+else
+  print "x is not y";
+
+print x;

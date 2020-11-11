@@ -15,6 +15,10 @@ Statement* parse(List* list);
 // calls parsePrint, parseDeclaration, and parseExpression accordingly.
 Statement* parseStatement(List* list);
 
+Expression* parseExpressionStatement(List* list);
+
+Statement* parseBlock(List* list);
+
 // Print statement parsing function. Takes in token list and calls
 // parseExpression.
 PrintStatement* parsePrint(List* list);
@@ -22,6 +26,8 @@ PrintStatement* parsePrint(List* list);
 // Declaration parsing function. Takes in token list, resolves identifier, and
 // calls parseExpression if finds an assignment.
 Declaration* parseDeclaration(List* list);
+
+IfStatement* parseIfStatement(List* list);
 
 // Main expression parsing function. Takes in token list, calls itself if
 // assignment is found, otherwise calls disjunction.

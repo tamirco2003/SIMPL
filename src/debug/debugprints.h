@@ -10,11 +10,15 @@ void printToken(Token* token);
 
 // Takes in statement pointer and pretty prints the statement and it's contents.
 // Calls printDeclaration and printExpression accordingly.
-void printStatement(Statement* stmt);
+void printStatement(Statement* stmt, int depth);
+
+void printBlockStatement(Statement* stmt, int depth);
 
 // Takes in declaration pointer and depth, pretty prints the declaration and its
 // contents indented according to depth. Calls printExpression.
 void printDeclaration(Declaration* decl, int depth);
+
+void printIfStatement(IfStatement* stmt, int depth);
 
 // Takes in expression pointer and depth, pretty prints the expression and its
 // contents indented according to depth. Calls printLiteral, printAssignment,

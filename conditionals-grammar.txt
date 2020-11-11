@@ -10,10 +10,6 @@ SEMICOLON
 EQUALS
 PERCENT
 
-OR
-AND
-NOT
-
 COMP_EQUALS
 COMP_LT
 COMP_LTE
@@ -21,11 +17,21 @@ COMP_GT
 COMP_GTE
 COMP_NE
 
+LBRACE
+RBRACE
+
 NUMBER
 IDENTIFIER
 STRING
+
 PRINT
 LET
+OR
+AND
+NOT
+IF
+ELSE
+
 EOF
 
 ---------------------------------------------
@@ -33,7 +39,13 @@ GRAMMAR:
 
 script -> statement* EOF
 
-statement -> PRINT expression SEMICOLON | LET IDENTIFIER [EQUALS expression] SEMICOLON | expression SEMICOLON
+statement -> LBRACE statement* RBRACE
+           | expression SEMICOLON
+           | LET IDENTIFIER [EQUALS expression] SEMICOLON
+           | PRINT expression SEMICOLON
+           | ifStatement
+
+ifStatement -> IF LPAR expression RPAR statement [else statement]
 
 expression -> IDENTIFIER EQUALS expression | disjunction
 
@@ -57,7 +69,13 @@ GRAMMAR WITHOUT LEFT RECURSION:
 
 script -> statement* EOF
 
-statement -> PRINT expression SEMICOLON | LET IDENTIFIER [EQUALS expression] SEMICOLON | expression SEMICOLON
+statement -> LBRACE statement* RBRACE
+           | PRINT expression SEMICOLON
+           | LET IDENTIFIER [EQUALS expression] SEMICOLON
+           | expression SEMICOLON
+           | ifStatement
+
+ifStatement -> IF LPAR expression RPAR statement [ELSE statement]
 
 expression -> IDENTIFIER EQUALS expression | disjunction
 

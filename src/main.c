@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
   printf("\n\nParser Pretty Print:\n");
   Statement* stmt = top;
   while (stmt != NULL) {
-    printStatement(stmt);
+    printStatement(stmt, 0);
     stmt = stmt->next;
   }
 

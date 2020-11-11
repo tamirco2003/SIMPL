@@ -1,0 +1,13 @@
+let x = 2;
+
+{
+  let y = 3;
+  let z = 4;
+  print x + y + z;
+  {
+    x = 5;
+  }
+}
+
+print x;
+print x + y + z;

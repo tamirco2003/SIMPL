@@ -18,11 +18,16 @@ int hashKey(char* key);
 
 // Creates a DictEntry array and returns a pointer to it's beginning.
 DictEntry** createDict();
+
+void destroyDict(DictEntry** dict);
+
+void freeDictEntry(DictEntry* dictEntry);
+
 // Takes in dictionary and key, returns pointer to DictEntry, or NULL if no such
 // key is found.
 DictEntry* getFromDict(DictEntry** dict, char* key);
-// Takes in dictionary, char pointer key, and LiteralExpression pointer value, creates new
-// DictEntry and inserts it into the dictionary accordingly.
+// Takes in dictionary, char pointer key, and LiteralExpression pointer value,
+// creates new DictEntry and inserts it into the dictionary accordingly.
 void setDict(DictEntry** dict, char* key, LiteralExpression* value);
 
 #endif
