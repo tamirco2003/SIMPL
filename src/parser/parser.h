@@ -5,18 +5,34 @@
 #include "..\ast.h"
 #include "..\tokenlist.h"
 
-// Longjmps (TIME TRAVEL!) when error is encountered.
+// Sets error flag to true and longjmps when error is encountered.
 void parserError();
 
-// Main parsing function. Takes in token list and calls parseStatement.
+// Removes and frees tokens until semicolon, right brace, or end of file.
+void synchronize(List* list);
+
+// Takes in token list, token pointer, token type, and printf parameters. If
+// token is not of type type, prints and errors out. Otherwise, dequeues and
+// frees the token.
+void expectToken(List* list, Token* token, TokenType type, char* strToFormat,
+                 ...);
+
+// Main parsing function. Takes in token list and calls parseStatement, or calls
+// synchronize if in error recovery mode.
 Statement* parse(List* list);
 
 // Statement parsing function. Takes in token list, resolves statement type, and
-// calls parsePrint, parseDeclaration, and parseExpression accordingly.
+// calls parseBlock, parsePrint, parseDeclaration, parseIfStatement,
+// parseWhileStatement, parseDoWhileStatement, and parseExpressionStatement
+// accordingly.
 Statement* parseStatement(List* list);
 
+// Expression statement parsing function. Takes in token list, calls
+// parseExpression, and expects a semicolon.
 Expression* parseExpressionStatement(List* list);
 
+// Block statement parsing function. Takes in token list and works similarly to
+// parse by creating a linked list of statements. Calls parseStatement.
 Statement* parseBlock(List* list);
 
 // Print statement parsing function. Takes in token list and calls
@@ -27,6 +43,7 @@ PrintStatement* parsePrint(List* list);
 // calls parseExpression if finds an assignment.
 Declaration* parseDeclaration(List* list);
 
+// If statement parsing function. Takes in token list, 
 IfStatement* parseIfStatement(List* list);
 
 WhileStatement* parseWhileStatement(List* list);

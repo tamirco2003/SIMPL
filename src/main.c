@@ -19,6 +19,8 @@ int main(int argc, char* argv[]) {
 
   List* tokenList = scan();
 
+  closeFile();
+
   printf("Scanner Pretty Print:\n");
 
   Node* n = tokenList->head;

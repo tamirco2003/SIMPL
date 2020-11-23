@@ -4,12 +4,18 @@
 
 #include <stdio.h>
 
-// Opens a file.
+// Takes in file name and sets a static file pointer. Calls fopen. Returns 0 if
+// failed, 1 if successful.
 int openFile(const char* filename);
 
-// Gets the next char and advances the pointer.
+// Returns the next char and advances the pointer. Calls fgetc.
 char getNextChar();
-// Gets the next char and does not advance the pointer.
+// Returns the next char and does not advance the pointer. Calls getNextChar and
+// ungetc.
 char peekNextChar();
+
+// Closes a file. Calls fclose and returns its value. Returns 0 on success and
+// EOF on failure.
+int closeFile();
 
 #endif

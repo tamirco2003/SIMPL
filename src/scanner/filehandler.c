@@ -21,3 +21,9 @@ char peekNextChar() {
   ungetc(c, sourceFile);
   return c;
 }
+
+int closeFile() {
+  FILE* currFile = sourceFile;
+  sourceFile = NULL;
+  return fclose(currFile);
+}

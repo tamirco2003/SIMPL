@@ -1,0 +1,10 @@
+let x = 1;
+let sign = 1;
+let piOver4 = 0;
+
+while (x < 10000) {
+	piOver4 = piOver4 + 1/x * sign;
+	print piOver4 * 4;
+	sign = -sign;
+	x = x + 2;
+}
