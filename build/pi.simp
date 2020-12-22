@@ -8,3 +8,6 @@ while (x < 10000) {
 	sign = -sign;
 	x = x + 2;
 }
+
+print "Final result: ";
+print piOver4 * 4;
