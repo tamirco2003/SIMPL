@@ -1,5 +1,5 @@
 // "pi" or "e"
-let whatToCalculate = "iurhgs";
+let whatToCalculate = "e";
 
 if (whatToCalculate == "pi") {
   // Leibniz formula

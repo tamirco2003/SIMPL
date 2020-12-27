@@ -2,6 +2,10 @@
 
 static FILE* sourceFile;
 
+void setFile(FILE* file) {
+  sourceFile = file;
+}
+
 int openFile(const char* filename) {
   sourceFile = fopen(filename, "r");
 

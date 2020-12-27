@@ -15,13 +15,13 @@ void parserError() {
 }
 
 void synchronize(List* list) {
-  Token* next = dequeue(list);
+  Token* next = peek(list);
   while (next->type != T_SEMICOLON && next->type != T_RBRACE &&
-         peek(list)->type != T_EOF) {
-    freeToken(next);
+         next->type != T_EOF) {
     next = dequeue(list);
+    freeToken(next);
+    next = peek(list);
   }
-  freeToken(next);
 }
 
 void expectToken(List* list, Token* token, TokenType type, char* strToFormat,
@@ -60,6 +60,13 @@ Statement* parse(List* list) {
       tail = statement;
     } else {
       synchronize(list);
+      
+      token = dequeue(list);
+      if (token->type != T_EOF) {
+        freeToken(token);
+      } else {
+        return NULL;
+      }
     }
 
     token = peek(list);

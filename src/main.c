@@ -6,15 +6,22 @@
 #include "scanner\scanner.h"
 
 int main(int argc, char* argv[]) {
-  if (argc != 2) {
-    printf("USAGE: simpl FILE\n");
-    return 0;
-  }
+  // input loop??!?
+  // FILE* stdinfile = stdin;
+  // char c;
+  // do {
+  //   c = fgetc(stdinfile);
+  //   printf("%c", c);
+  // } while (c != EOF);
 
-  char* filename = argv[1];
-  if (openFile(filename) == 0) {
-    printf("Could not open file '%s'.\n", filename);
-    return 0;
+  if (argc >= 2) {
+    char* filename = argv[1];
+    if (openFile(filename) == 0) {
+      printf("Could not open file '%s'.\n", filename);
+      return 0;
+    }
+  } else {
+    setFile(stdin);
   }
 
   List* tokenList = scan();

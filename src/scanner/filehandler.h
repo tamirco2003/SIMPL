@@ -4,6 +4,9 @@
 
 #include <stdio.h>
 
+// Sets sourceFile to given file.
+void setFile(FILE* file);
+
 // Takes in file name and sets a static file pointer. Calls fopen. Returns 0 if
 // failed, 1 if successful.
 int openFile(const char* filename);
