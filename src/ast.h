@@ -28,6 +28,7 @@ struct _statement {
     S_IF,
     S_WHILE,
     S_DOWHILE,
+    S_END,
   } type;
 
   union StatementContent {

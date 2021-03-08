@@ -3,8 +3,9 @@
 #define SCANNER_H
 
 #include <stdbool.h>
+#include "..\tokens.h"
 
-#include "..\tokenlist.h"
+// #include "..\tokenlist.h"
 
 // Exits the program when scanner encounters an error.
 void scannerError();
@@ -29,8 +30,10 @@ char* stringLit(int line);
 // identifier.
 TokenTeeeepe keywordType(char* keyword);
 
+void addToken(TokenTeeeepe type, int line, char* lexeme);
+
 // Main scanning function. Calls addToken to populate list with tokens, calls
 // isDigit, isAlpha, number, keyword, and keywordType accordingly.
-List* scan();
+unsigned __stdcall scan(void* pArguments);
 
 #endif

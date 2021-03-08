@@ -1,8 +1,9 @@
-#include "scanner.h"
+#include "threadedscanner.h"
 
 #include <stdlib.h>
 #include <string.h>
 
+#include "..\interfaces\threadlist.h"
 #include "charlist.h"
 #include "filehandler.h"
 
@@ -10,6 +11,8 @@
 static const char* const keywords[KEYWORD_COUNT] = {
     "print", "let", "or", "and", "not", "if", "else", "while", "do"};
 #define FIRST_KEYWORD T_PRINT
+
+static ListStruct* tokenQueue = NULL;
 
 void scannerError() { exit(1); }
 
@@ -129,8 +132,27 @@ TokenTeeeepe keywordType(char* keyword) {
   return T_IDENTIFIER;
 }
 
-List* scan() {
-  List* list = createList();
+void addToken(TokenTeeeepe type, int line, char* lexeme) {
+  Token* token = (Token*)malloc(sizeof(Token));
+  token->type = type;
+  token->line = line;
+
+  if (lexeme != NULL) {
+    token->lexeme = (char*)malloc(sizeof(char) * (strlen(lexeme) + 1));
+    strcpy(token->lexeme, lexeme);
+  } else {
+    token->lexeme = NULL;
+  }
+
+  ListItem* item = (ListItem*)malloc(sizeof(ListItem));
+  item->token = token;
+
+  // enqueueToken(token);
+  enqueueItem(tokenQueue, item);
+}
+
+unsigned __stdcall scan(void* queue) {
+  tokenQueue = queue;
 
   int line = 1;
   char c = peekNextChar();
@@ -139,15 +161,15 @@ List* scan() {
     switch (c) {
       case '+':
         getNextChar();
-        addToken(list, T_PLUS, line, "+");
+        addToken(T_PLUS, line, "+");
         break;
       case '-':
         getNextChar();
-        addToken(list, T_MINUS, line, "-");
+        addToken(T_MINUS, line, "-");
         break;
       case '*':
         getNextChar();
-        addToken(list, T_STAR, line, "*");
+        addToken(T_STAR, line, "*");
         break;
       case '/':
         getNextChar();
@@ -156,42 +178,42 @@ List* scan() {
             getNextChar();
           }
         } else
-          addToken(list, T_SLASH, line, "/");
+          addToken(T_SLASH, line, "/");
         break;
       case '(':
         getNextChar();
-        addToken(list, T_LPAR, line, "(");
+        addToken(T_LPAR, line, "(");
         break;
       case ')':
         getNextChar();
-        addToken(list, T_RPAR, line, ")");
+        addToken(T_RPAR, line, ")");
         break;
       case ';':
         getNextChar();
-        addToken(list, T_SEMICOLON, line, ";");
+        addToken(T_SEMICOLON, line, ";");
         break;
       case '=':
         getNextChar();
 
         if (peekNextChar() == '=') {
           getNextChar();
-          addToken(list, T_COMP_EQUALS, line, "==");
+          addToken(T_COMP_EQUALS, line, "==");
         } else
-          addToken(list, T_EQUALS, line, "=");
+          addToken(T_EQUALS, line, "=");
 
         break;
       case '%':
         getNextChar();
-        addToken(list, T_PERCENT, line, "%");
+        addToken(T_PERCENT, line, "%");
         break;
       case '<':
         getNextChar();
 
         if (peekNextChar() == '=') {
           getNextChar();
-          addToken(list, T_COMP_LTE, line, "<=");
+          addToken(T_COMP_LTE, line, "<=");
         } else
-          addToken(list, T_COMP_LT, line, "<");
+          addToken(T_COMP_LT, line, "<");
 
         break;
       case '>':
@@ -199,15 +221,15 @@ List* scan() {
 
         if (peekNextChar() == '=') {
           getNextChar();
-          addToken(list, T_COMP_GTE, line, ">=");
+          addToken(T_COMP_GTE, line, ">=");
         } else
-          addToken(list, T_COMP_GT, line, ">");
+          addToken(T_COMP_GT, line, ">");
 
         break;
       case '!':
         getNextChar();
         if (getNextChar() == '=') {
-          addToken(list, T_COMP_NE, line, "!=");
+          addToken(T_COMP_NE, line, "!=");
         } else {
           printf("ERR: Unrecognized character '!' on line '%d'\n", c, line);
           scannerError();
@@ -216,16 +238,16 @@ List* scan() {
         break;
       case '{':
         getNextChar();
-        addToken(list, T_LBRACE, line, "{");
+        addToken(T_LBRACE, line, "{");
         break;
       case '}':
         getNextChar();
-        addToken(list, T_RBRACE, line, "}");
+        addToken(T_RBRACE, line, "}");
         break;
       case '\'':
       case '"':
         char* stringLiteral = stringLit(line);
-        addToken(list, T_STRING, line, stringLiteral);
+        addToken(T_STRING, line, stringLiteral);
         break;
       case '\n':
         line++;
@@ -243,12 +265,12 @@ List* scan() {
             scannerError();
           }
 
-          addToken(list, T_NUMBER, line, num);
+          addToken(T_NUMBER, line, num);
         } else if (isAlpha(c)) {
           char* name = keyword();
           TokenTeeeepe type = keywordType(name);
 
-          addToken(list, type, line, name);
+          addToken(type, line, name);
         } else {
           printf("ERR: Unrecognized character '%c' on line '%d'\n", c, line);
           scannerError();
@@ -259,7 +281,8 @@ List* scan() {
     c = peekNextChar();
   }
 
-  addToken(list, T_EOF, line, "");
+  addToken(T_EOF, line, "");
 
-  return list;
+  printf("Finished scanning!\n");
+  return 0;
 }

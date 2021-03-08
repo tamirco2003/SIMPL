@@ -1,13 +1,17 @@
+#include <process.h>
 #include <stdio.h>
 #include <string.h>
+#include <windows.h>
 
 #include "debug\debugprints.h"
-#include "evaluator\evaluator.h"
-#include "parser\parser.h"
-#include "scanner\scanner.h"
+#include "evaluator\threadedevaluator.h"
+#include "interfaces\threadlist.h"
+#include "parser\threadedparser.h"
+#include "scanner\threadedscanner.h"
 
 #define OPTION_PREFIX '-'
 #define VERBOSE_OPTION "-v"
+#define THREAD_COUNT 3
 
 int main(int argc, char* argv[]) {
   bool verbose = false;
@@ -37,36 +41,23 @@ int main(int argc, char* argv[]) {
     setFile(stdin);
   }
 
-  List* tokenList = scan();
-  closeFile();
+  // Create thread safe token queue.
+  ListStruct* tokenQueue = createList(LST_TOKEN, verbose);
+  // Create thread safe statement queue.
+  ListStruct* statementQueue = createList(LST_STATEMENT, verbose);
 
-  if (verbose) {
-    printf("Scanner Pretty Print:\n");
-    Node* n = tokenList->head;
-    while (n != NULL) {
-      printToken(n->value);
-      n = n->next;
-    }
-    printf("\n\n");
-  }
+  // Queue array to pass to parser.
+  ListStruct* queues[] = {tokenQueue, statementQueue};
 
-  Statement* top = parse(tokenList);
+  HANDLE threads[THREAD_COUNT];
+  // Scanner thread.
+  threads[0] = (HANDLE)_beginthreadex(NULL, 0, &scan, tokenQueue, 0, NULL);
+  // Parser thread.
+  threads[1] = (HANDLE)_beginthreadex(NULL, 0, &parse, queues, 0, NULL);
+  // Evaluator thread.
+  threads[2] = (HANDLE)_beginthreadex(NULL, 0, &evaluate, statementQueue, 0, NULL);
 
-  if (top == NULL) {
-    printf("\nParser failed.");
-    return;
-  }
+  WaitForMultipleObjects(THREAD_COUNT, threads, TRUE, INFINITE);
 
-  if (verbose) {
-    printf("\n\nParser Pretty Print:\n");
-    Statement* stmt = top;
-    while (stmt != NULL) {
-      printStatement(stmt, 0);
-      stmt = stmt->next;
-    }
-
-    printf("\n\nEvaluation:\n");
-  }
-
-  evaluate(top);
+  printf("Finished!\n");
 }

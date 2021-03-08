@@ -1,10 +1,16 @@
-#include "parser.h"
+#include "threadedparser.h"
 
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+// #include "..\interfaces\statementqueue.h"
+#include "..\interfaces\threadlist.h"
+
+static ListStruct* tokenQueue = NULL;
+static ListStruct* statementQueue = NULL;
 
 static bool error;
 static jmp_buf error_buf;
@@ -14,23 +20,22 @@ void parserError() {
   longjmp(error_buf, 1);
 }
 
-void synchronize(List* list) {
-  Token* next = peek(list);
+void synchronize() {
+  Token* next = peekItem(tokenQueue)->token;
   while (next->type != T_SEMICOLON && next->type != T_RBRACE &&
          next->type != T_EOF) {
-    next = dequeue(list);
+    next = dequeueItem(tokenQueue)->token;
     freeToken(next);
-    next = peek(list);
+    next = peekItem(tokenQueue)->token;
   }
 }
 
-void expectToken(List* list, Token* token, TokenTeeeepe type, char* strToFormat,
-                 ...) {
+void expectToken(Token* token, TokenTeeeepe type, char* strToFormat, ...) {
   va_list args;
   va_start(args, strToFormat);
 
   if (token->type == type) {
-    dequeue(list);
+    dequeueItem(tokenQueue);
     freeToken(token);
     va_end(args);
   } else {
@@ -40,128 +45,137 @@ void expectToken(List* list, Token* token, TokenTeeeepe type, char* strToFormat,
   }
 }
 
-Statement* parse(List* list) {
+unsigned __stdcall parse(void* queuesArg) {
+  ListStruct** queues = (ListStruct**)queuesArg;
+  tokenQueue = queues[0];
+  statementQueue = queues[1];
   error = false;
 
-  Statement* head = NULL;
-  Statement* tail = NULL;
-
-  Token* token = peek(list);
+  Token* token = peekItem(tokenQueue)->token;
   while (token->type != T_EOF) {
     if (!setjmp(error_buf)) {
-      Statement* statement = parseStatement(list);
+      Statement* statement = parseStatement();
 
-      if (tail == NULL) {
-        head = statement;
-      } else {
-        tail->next = statement;
-      }
-
-      tail = statement;
+      ListItem* item = (ListItem*)malloc(sizeof(ListItem));
+      item->statement = statement;
+      enqueueItem(statementQueue, item);
     } else {
-      synchronize(list);
-      
-      token = dequeue(list);
+      // On error, stop evaluation.
+      ListItem* item = (ListItem*)malloc(sizeof(ListItem));
+      item->statement = (Statement*)malloc(sizeof(Statement));
+      item->statement->type = S_END;
+      enqueueItem(statementQueue, item);
+
+      synchronize();
+
+      token = dequeueItem(tokenQueue)->token;
       if (token->type != T_EOF) {
         freeToken(token);
       } else {
-        return NULL;
+        return 1;
       }
     }
 
-    token = peek(list);
+    token = peekItem(tokenQueue)->token;
   }
 
-  free(list);
+  //   free(list);
+  // Add queue "closing"?
+
+  ListItem* item = (ListItem*)malloc(sizeof(ListItem));
+  item->statement = (Statement*)malloc(sizeof(Statement));
+  item->statement->type = S_END;
+  enqueueItem(statementQueue, item);
 
   if (error) {
-    return NULL;
+    return 1;
   }
 
-  return head;
+  printf("Finished parsing!\n");
+  return 0;
 }
 
-Statement* parseStatement(List* list) {
+Statement* parseStatement() {
   Statement* result = (Statement*)malloc(sizeof(Statement));
   result->next = NULL;
 
-  Token* token = peek(list);
+  Token* token = peekItem(tokenQueue)->token;
 
   switch (token->type) {
     case T_LBRACE:
-      dequeue(list);
+      dequeueItem(tokenQueue)->token;
       freeToken(token);
 
       result->type = S_BLOCK;
-      result->content.blockBody = parseBlock(list);
+      result->content.blockBody = parseBlock();
       break;
     case T_PRINT:
-      dequeue(list);
+      dequeueItem(tokenQueue)->token;
       freeToken(token);
 
       result->type = S_PRINT;
-      result->content.printStatement = parsePrint(list);
+      result->content.printStatement = parsePrint();
       break;
     case T_LET:
-      dequeue(list);
+      dequeueItem(tokenQueue)->token;
       freeToken(token);
 
       result->type = S_DECLARATION;
-      result->content.declaration = parseDeclaration(list);
+      result->content.declaration = parseDeclaration();
       break;
     case T_IF:
-      dequeue(list);
+      dequeueItem(tokenQueue)->token;
       freeToken(token);
 
       result->type = S_IF;
-      result->content.ifStatement = parseIfStatement(list);
+      result->content.ifStatement = parseIfStatement();
       break;
     case T_WHILE:
-      dequeue(list);
+      dequeueItem(tokenQueue)->token;
       freeToken(token);
 
       result->type = S_WHILE;
-      result->content.whileStatement = parseWhileStatement(list);
+      result->content.whileStatement = parseWhileStatement();
       break;
     case T_DO:
-      dequeue(list);
+      dequeueItem(tokenQueue)->token;
       freeToken(token);
 
       result->type = S_DOWHILE;
-      result->content.whileStatement = parseDoWhileStatement(list);
+      result->content.whileStatement = parseDoWhileStatement();
       break;
     default:
       result->type = S_EXPRESSION;
-      result->content.expression = parseExpressionStatement(list);
+      result->content.expression = parseExpressionStatement();
       break;
   }
 
   return result;
 }
 
-Expression* parseExpressionStatement(List* list) {
-  Expression* result = parseExpression(list);
+Expression* parseExpressionStatement() {
+  Expression* result = parseExpression();
 
-  Token* semicolon = peek(list);
-  expectToken(list, semicolon, T_SEMICOLON,
+  Token* semicolon = peekItem(tokenQueue)->token;
+  expectToken(semicolon, T_SEMICOLON,
               "ERR (exprstmt): Expected ';' at/before '%s' on line %d.\n",
               semicolon->lexeme, semicolon->line);
 
   return result;
 }
 
-Statement* parseBlock(List* list) {
+Statement* parseBlock() {
   Statement* head = NULL;
   Statement* tail = NULL;
 
-  Token* next = peek(list);
+  Token* next = peekItem(tokenQueue)->token;
   while (next->type != T_RBRACE) {
     if (next->type == T_EOF) {
       printf("ERR: Unclosed block, expected '}' before end of file.\n");
       parserError();
     }
 
-    Statement* stmt = parseStatement(list);
+    Statement* stmt = parseStatement();
 
     if (tail == NULL) {
       head = stmt;
@@ -171,77 +185,77 @@ Statement* parseBlock(List* list) {
 
     tail = stmt;
 
-    next = peek(list);
+    next = peekItem(tokenQueue)->token;
   }
-  dequeue(list);
+  dequeueItem(tokenQueue)->token;
   freeToken(next);
 
   return head;
 }
 
-PrintStatement* parsePrint(List* list) {
+PrintStatement* parsePrint() {
   PrintStatement* result = (PrintStatement*)malloc(sizeof(PrintStatement));
-  result->expression = parseExpression(list);
+  result->expression = parseExpression();
 
-  Token* semicolon = peek(list);
-  expectToken(list, semicolon, T_SEMICOLON,
+  Token* semicolon = peekItem(tokenQueue)->token;
+  expectToken(semicolon, T_SEMICOLON,
               "ERR (print): Expected ';' at/before '%s' on line %d.\n",
               semicolon->lexeme, semicolon->line);
 
   return result;
 }
 
-Declaration* parseDeclaration(List* list) {
+Declaration* parseDeclaration() {
   Declaration* result = (Declaration*)malloc(sizeof(Declaration));
   result->expression = NULL;
 
   // will replace when stack lexeme problem is solved.
-  Token* identifier = peek(list);
+  Token* identifier = peekItem(tokenQueue)->token;
   if (identifier->type != T_IDENTIFIER) {
     printf("ERR: Expected identifier at '%s' on line %d.\n", identifier->lexeme,
            identifier->line);
     parserError();
   }
-  dequeue(list);
+  dequeueItem(tokenQueue)->token;
   result->identifier = identifier;
 
-  Token* next = peek(list);
+  Token* next = peekItem(tokenQueue)->token;
   if (next->type == T_EQUALS) {
-    dequeue(list);
+    dequeueItem(tokenQueue)->token;
     freeToken(next);
 
-    result->expression = parseExpression(list);
+    result->expression = parseExpression();
   }
 
-  Token* semicolon = peek(list);
-  expectToken(list, semicolon, T_SEMICOLON,
+  Token* semicolon = peekItem(tokenQueue)->token;
+  expectToken(semicolon, T_SEMICOLON,
               "ERR (decl): Expected ';' at/before '%s' on line %d.\n",
               semicolon->lexeme, semicolon->line);
 
   return result;
 }
 
-IfStatement* parseIfStatement(List* list) {
+IfStatement* parseIfStatement() {
   IfStatement* result = (IfStatement*)malloc(sizeof(IfStatement));
 
   Token* expected;
 
-  expected = peek(list);
-  expectToken(list, expected, T_LPAR, "ERR: Expected '(' at '%s' on line %d.\n",
+  expected = peekItem(tokenQueue)->token;
+  expectToken(expected, T_LPAR, "ERR: Expected '(' at '%s' on line %d.\n",
               expected->lexeme, expected->line);
 
-  result->condition = parseExpression(list);
+  result->condition = parseExpression();
 
-  expected = peek(list);
-  expectToken(list, expected, T_RPAR, "ERR: Expected ')' at '%s' on line %d.\n",
+  expected = peekItem(tokenQueue)->token;
+  expectToken(expected, T_RPAR, "ERR: Expected ')' at '%s' on line %d.\n",
               expected->lexeme, expected->line);
 
-  result->body = parseStatement(list);
+  result->body = parseStatement();
 
-  expected = peek(list);
+  expected = peekItem(tokenQueue)->token;
   if (expected->type == T_ELSE) {
-    dequeue(list);
-    result->elseBody = parseStatement(list);
+    dequeueItem(tokenQueue)->token;
+    result->elseBody = parseStatement();
   } else {
     result->elseBody = NULL;
   }
@@ -249,63 +263,63 @@ IfStatement* parseIfStatement(List* list) {
   return result;
 }
 
-WhileStatement* parseWhileStatement(List* list) {
+WhileStatement* parseWhileStatement() {
   WhileStatement* result = (WhileStatement*)malloc(sizeof(WhileStatement));
 
   Token* expected;
 
-  expected = peek(list);
-  expectToken(list, expected, T_LPAR, "ERR: Expected '(' at '%s' on line %d.\n",
+  expected = peekItem(tokenQueue)->token;
+  expectToken(expected, T_LPAR, "ERR: Expected '(' at '%s' on line %d.\n",
               expected->lexeme, expected->line);
 
-  result->condition = parseExpression(list);
+  result->condition = parseExpression();
 
-  expected = peek(list);
-  expectToken(list, expected, T_RPAR, "ERR: Expected ')' at '%s' on line %d.\n",
+  expected = peekItem(tokenQueue)->token;
+  expectToken(expected, T_RPAR, "ERR: Expected ')' at '%s' on line %d.\n",
               expected->lexeme, expected->line);
 
-  result->body = parseStatement(list);
+  result->body = parseStatement();
 
   return result;
 }
 
-WhileStatement* parseDoWhileStatement(List* list) {
+WhileStatement* parseDoWhileStatement() {
   WhileStatement* result = (WhileStatement*)malloc(sizeof(WhileStatement));
 
-  result->body = parseStatement(list);
+  result->body = parseStatement();
 
   Token* expected;
 
-  expected = peek(list);
-  expectToken(list, expected, T_WHILE,
-              "ERR: Expected 'while' at '%s' on line %d.\n", expected->lexeme,
-              expected->line);
-
-  expected = peek(list);
-  expectToken(list, expected, T_LPAR, "ERR: Expected '(' at '%s' on line %d.\n",
+  expected = peekItem(tokenQueue)->token;
+  expectToken(expected, T_WHILE, "ERR: Expected 'while' at '%s' on line %d.\n",
               expected->lexeme, expected->line);
 
-  result->condition = parseExpression(list);
-
-  expected = peek(list);
-  expectToken(list, expected, T_RPAR, "ERR: Expected ')' at '%s' on line %d.\n",
+  expected = peekItem(tokenQueue)->token;
+  expectToken(expected, T_LPAR, "ERR: Expected '(' at '%s' on line %d.\n",
               expected->lexeme, expected->line);
 
-  expected = peek(list);
-  expectToken(list, expected, T_SEMICOLON,
+  result->condition = parseExpression();
+
+  expected = peekItem(tokenQueue)->token;
+  expectToken(expected, T_RPAR, "ERR: Expected ')' at '%s' on line %d.\n",
+              expected->lexeme, expected->line);
+
+  expected = peekItem(tokenQueue)->token;
+  expectToken(expected, T_SEMICOLON,
               "ERR (dowhile): Expected ';' at/before '%s' on line %d.\n",
               expected->lexeme, expected->line);
 
   return result;
 }
 
-Expression* parseExpression(List* list) {
+Expression* parseExpression() {
   Expression* result = (Expression*)malloc(sizeof(Expression));
 
-  Token* first = dequeue(list);
-  Token* next = peek(list);
+  ListItem* firstItem = dequeueItem(tokenQueue);
+  Token* first = firstItem->token;
+  Token* next = peekItem(tokenQueue)->token;
   if (next->type == T_EQUALS) {
-    dequeue(list);
+    dequeueItem(tokenQueue)->token;
     freeToken(next);
 
     result->type = E_ASSIGNMENT;
@@ -314,23 +328,25 @@ Expression* parseExpression(List* list) {
         (AssignmentExpression*)malloc(sizeof(AssignmentExpression));
 
     assign->identifier = first;
-    assign->expression = parseExpression(list);
+    assign->expression = parseExpression();
     result->content.assignmentExpression = assign;
 
     return result;
   }
 
-  push(list, first);
-  return disjunction(list);
+  // pushToken(first);
+  pushItem(tokenQueue, firstItem);
+
+  return disjunction();
 }
 
-Expression* disjunction(List* list) {
-  Expression* conjunctionRes = conjunction(list);
+Expression* disjunction() {
+  Expression* conjunctionRes = conjunction();
 
-  Token* op = peek(list);
+  Token* op = peekItem(tokenQueue)->token;
 
   while (op->type == T_OR) {
-    dequeue(list);
+    dequeueItem(tokenQueue)->token;
 
     Expression* res = (Expression*)malloc(sizeof(Expression));
     res->type = E_BINARY;
@@ -339,25 +355,25 @@ Expression* disjunction(List* list) {
         (BinaryExpression*)malloc(sizeof(BinaryExpression));
     binEx->type = B_OR;
     binEx->left = conjunctionRes;
-    binEx->right = conjunction(list);
+    binEx->right = conjunction();
 
     res->content.binaryExpression = binEx;
 
     conjunctionRes = res;
     freeToken(op);  // PROBLEM! Freeing strings initialized without malloc...
-    op = peek(list);
+    op = peekItem(tokenQueue)->token;
   }
 
   return conjunctionRes;
 }
 
-Expression* conjunction(List* list) {
-  Expression* inversionRes = inversion(list);
+Expression* conjunction() {
+  Expression* inversionRes = inversion();
 
-  Token* op = peek(list);
+  Token* op = peekItem(tokenQueue)->token;
 
   while (op->type == T_AND) {
-    dequeue(list);
+    dequeueItem(tokenQueue)->token;
 
     Expression* res = (Expression*)malloc(sizeof(Expression));
     res->type = E_BINARY;
@@ -366,23 +382,23 @@ Expression* conjunction(List* list) {
         (BinaryExpression*)malloc(sizeof(BinaryExpression));
     binEx->type = B_AND;
     binEx->left = inversionRes;
-    binEx->right = inversion(list);
+    binEx->right = inversion();
 
     res->content.binaryExpression = binEx;
 
     inversionRes = res;
     freeToken(op);  // ERR! Freeing strings initialized without malloc...
-    op = peek(list);
+    op = peekItem(tokenQueue)->token;
   }
 
   return inversionRes;
 }
 
-Expression* inversion(List* list) {
+Expression* inversion() {
   Expression* head = NULL;
   Expression* tail = NULL;
 
-  Token* token = peek(list);
+  Token* token = peekItem(tokenQueue)->token;
 
   while (token->type == T_NOT) {
     freeToken(token);
@@ -401,11 +417,11 @@ Expression* inversion(List* list) {
       tail = unaryExp;
     }
 
-    dequeue(list);
-    token = peek(list);
+    dequeueItem(tokenQueue)->token;
+    token = peekItem(tokenQueue)->token;
   }
 
-  Expression* nakedRes = comparison(list);
+  Expression* nakedRes = comparison();
 
   if (tail == NULL) {
     return nakedRes;
@@ -415,22 +431,22 @@ Expression* inversion(List* list) {
   return head;
 }
 
-Expression* comparison(List* list) {
-  Expression* arithmaticRes = arithmatic(list);
+Expression* comparison() {
+  Expression* arithmaticRes = arithmatic();
 
-  Token* token = peek(list);
+  Token* token = peekItem(tokenQueue)->token;
 
   if (token->type == T_COMP_EQUALS || token->type == T_COMP_LT ||
       token->type == T_COMP_LTE || token->type == T_COMP_GT ||
       token->type == T_COMP_GTE || token->type == T_COMP_NE) {
-    dequeue(list);
+    dequeueItem(tokenQueue)->token;
 
     Expression* result = (Expression*)malloc(sizeof(Expression));
     result->type = E_BINARY;
     BinaryExpression* binEx =
         (BinaryExpression*)malloc(sizeof(BinaryExpression));
     binEx->left = arithmaticRes;
-    binEx->right = arithmatic(list);
+    binEx->right = arithmatic();
 
     switch (token->type) {
       case T_COMP_EQUALS:
@@ -460,13 +476,13 @@ Expression* comparison(List* list) {
   return arithmaticRes;
 }
 
-Expression* arithmatic(List* list) {
-  Expression* termRes = term(list);
+Expression* arithmatic() {
+  Expression* termRes = term();
 
-  Token* op = peek(list);
+  Token* op = peekItem(tokenQueue)->token;
 
   while (op->type == T_PLUS || op->type == T_MINUS) {
-    dequeue(list);
+    dequeueItem(tokenQueue)->token;
 
     Expression* res = (Expression*)malloc(sizeof(Expression));
     res->type = E_BINARY;
@@ -483,26 +499,26 @@ Expression* arithmatic(List* list) {
         break;
     }
 
-    binEx->right = term(list);
+    binEx->right = term();
 
     res->content.binaryExpression = binEx;
 
     termRes = res;
 
     freeToken(op);
-    op = peek(list);
+    op = peekItem(tokenQueue)->token;
   }
 
   return termRes;
 }
 
-Expression* term(List* list) {
-  Expression* factorRes = factor(list);
+Expression* term() {
+  Expression* factorRes = factor();
 
-  Token* op = peek(list);
+  Token* op = peekItem(tokenQueue)->token;
 
   while (op->type == T_STAR || op->type == T_SLASH || op->type == T_PERCENT) {
-    dequeue(list);
+    dequeueItem(tokenQueue)->token;
 
     Expression* res = (Expression*)malloc(sizeof(Expression));
     res->type = E_BINARY;
@@ -522,24 +538,24 @@ Expression* term(List* list) {
         break;
     }
 
-    binEx->right = factor(list);
+    binEx->right = factor();
 
     res->content.binaryExpression = binEx;
 
     factorRes = res;
 
     freeToken(op);
-    op = peek(list);
+    op = peekItem(tokenQueue)->token;
   }
 
   return factorRes;
 }
 
-Expression* factor(List* list) {
+Expression* factor() {
   Expression* head = NULL;
   Expression* tail = NULL;
 
-  Token* token = peek(list);
+  Token* token = peekItem(tokenQueue)->token;
 
   while (token->type == T_MINUS) {
     freeToken(token);
@@ -558,15 +574,15 @@ Expression* factor(List* list) {
       tail = unaryExp;
     }
 
-    dequeue(list);
-    token = peek(list);
+    dequeueItem(tokenQueue)->token;
+    token = peekItem(tokenQueue)->token;
   }
 
   Expression* nakedRes = (Expression*)malloc(sizeof(Expression));
 
   switch (token->type) {
     case T_IDENTIFIER: {
-      dequeue(list);
+      dequeueItem(tokenQueue)->token;
       nakedRes->type = E_VARIABLE;
       VariableExpression* variable =
           (VariableExpression*)malloc(sizeof(VariableExpression));
@@ -575,7 +591,7 @@ Expression* factor(List* list) {
     } break;
 
     case T_NUMBER: {
-      dequeue(list);
+      dequeueItem(tokenQueue)->token;
       nakedRes->type = E_LITERAL;
       LiteralExpression* literal =
           (LiteralExpression*)malloc(sizeof(LiteralExpression));
@@ -586,22 +602,21 @@ Expression* factor(List* list) {
     } break;
 
     case T_LPAR: {
-      dequeue(list);
+      dequeueItem(tokenQueue)->token;
       freeToken(token);
       nakedRes->type = E_GROUPING;
       GroupingExpression* grouping =
           (GroupingExpression*)malloc(sizeof(GroupingExpression));
-      grouping->expression = parseExpression(list);
+      grouping->expression = parseExpression();
       nakedRes->content.groupingExpression = grouping;
 
-      Token* rightPar = peek(list);
-      expectToken(list, rightPar, T_RPAR,
-                  "ERR: Expected ')' at '%s' on line %d.\n", rightPar->lexeme,
-                  rightPar->line);
+      Token* rightPar = peekItem(tokenQueue)->token;
+      expectToken(rightPar, T_RPAR, "ERR: Expected ')' at '%s' on line %d.\n",
+                  rightPar->lexeme, rightPar->line);
 
     } break;
     case T_STRING: {
-      dequeue(list);
+      dequeueItem(tokenQueue)->token;
       nakedRes->type = E_LITERAL;
       LiteralExpression* literal =
           (LiteralExpression*)malloc(sizeof(LiteralExpression));

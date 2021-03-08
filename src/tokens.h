@@ -3,7 +3,7 @@
 #define TOKENS_H
 
 // Defines type of token.
-typedef enum _tokenType {
+typedef enum _tokenTeeeepe {
   T_PLUS,
   T_MINUS,
   T_STAR,
@@ -39,11 +39,11 @@ typedef enum _tokenType {
   T_DO,
 
   T_EOF,
-} TokenType;
+} TokenTeeeepe;
 
 // Defines token. Includes token type, line number, and char pointer to lexeme.
 typedef struct _token {
-  TokenType type;
+  TokenTeeeepe type;
   int line;
   char* lexeme;
 } Token;

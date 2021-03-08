@@ -1,5 +1,7 @@
 // "pi" or "e"
-let whatToCalculate = "tau";
+let whatToCalculate = "xd";
+
+print whatToCalculate;
 
 if (whatToCalculate == "pi") {
   // Leibniz formula

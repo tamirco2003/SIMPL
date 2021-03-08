@@ -24,7 +24,7 @@ void enqueue(List* list, Token* token) {
   list->tail = node;
 }
 
-void addToken(List* list, TokenType type, int line, char* lexeme) {
+void addToken(List* list, TokenTeeeepe type, int line, char* lexeme) {
   Token* token = (Token*)malloc(sizeof(Token));
   token->type = type;
   token->line = line;

@@ -1,27 +1,35 @@
-#include "evaluator.h"
+#include "threadedevaluator.h"
 
 #include <stdlib.h>
 #include <string.h>
 
+#include "..\debug\debugprints.h"
+#include "..\interfaces\threadlist.h"
 #include "dictionary.h"
 #include "scope.h"
 
 void runtimeError() { exit(1); }
 
-// static DictEntry** dictionary;
 static Scope* scope;
+static ListStruct* statementQueue = NULL;
 
-void evaluate(Statement* statement) {
-  // dictionary = createDict();
+unsigned __stdcall evaluate(void* queue) {
+  statementQueue = queue;
   scope = createScope(NULL);
 
-  while (statement != NULL) {
+  Statement* statement = dequeueItem(statementQueue)->statement;
+  while (statement->type != S_END) {
     evaluateStatement(statement);
-    statement = statement->next;
+    statement = dequeueItem(statementQueue)->statement;
   }
+
+  printf("Finished evaluating!\n");
+
+  return 0;
 }
 
 void evaluateStatement(Statement* statement) {
+  // printf("Evaluating statement type %d\n", statement->type);
   switch (statement->type) {
     case S_BLOCK:
       evaluateBlock(statement->content.blockBody);
@@ -238,7 +246,9 @@ LiteralExpression* evaluateBinaryExpression(
     result->type = L_STRING;
 
     if (binaryExpression->type == B_ADD) {
-      char* strResult = calloc(1, sizeof(char));
+      char* strResult =
+          calloc(strlen(left->value.string) + strlen(right->value.string) + 1,
+                 sizeof(char));
       strcat(strResult, left->value.string);
       strcat(strResult, right->value.string);
 
@@ -254,7 +264,7 @@ LiteralExpression* evaluateBinaryExpression(
     if (left->type == L_STRING && right->type == L_NUMBER) {
       originalStr = left->value.string;
       times = right->value.number;
-    } else {
+    } else if (left->type == L_NUMBER && right->type == L_STRING) {
       originalStr = right->value.string;
       times = left->value.number;
     }

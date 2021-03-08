@@ -23,7 +23,7 @@ List* createList();
 void enqueue(List* list, Token* token);
 // Takes in a list, and everything needed to make a token. Creates new token and
 // calls enqueue.
-void addToken(List* list, TokenType type, int line, char* lexeme);
+void addToken(List* list, TokenTeeeepe type, int line, char* lexeme);
 // Removes token from start of list and returns it.
 Token* dequeue(List* list);
 // Returns token from start of list without removing it.

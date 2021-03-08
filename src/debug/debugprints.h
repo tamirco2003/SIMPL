@@ -2,8 +2,10 @@
 #ifndef DEBUGPRINTS_H
 #define DEBUGPRINTS_H
 
-#include "..\parser\parser.h"
-#include "..\scanner\scanner.h"
+#include "..\tokens.h"
+#include "..\ast.h"
+// #include "..\parser\parser.h"
+// #include "..\scanner\scanner.h"
 
 // Takes in token pointer and pretty prints the token.
 void printToken(Token* token);
